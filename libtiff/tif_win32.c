@@ -55,6 +55,11 @@
 
 #include <windows.h>
 
+static int isGuiApp(void)
+{
+	return GetStdHandle(STD_ERROR_HANDLE) == NULL;
+}
+
 static tmsize_t
 _tiffReadProc(thandle_t fd, void* buf, tmsize_t size)
 {
@@ -406,23 +411,29 @@ static void
 Win32WarningHandler(const char* module, const char* fmt, va_list ap)
 {
 #ifndef TIF_PLATFORM_CONSOLE
-	LPTSTR szTitle;
-	LPTSTR szTmp;
-	LPCTSTR szTitleText = "%s Warning";
-	LPCTSTR szDefaultModule = "LIBTIFF";
-	LPCTSTR szTmpModule = (module == NULL) ? szDefaultModule : module;
-        SIZE_T nBufSize = (strlen(szTmpModule) +
-                        strlen(szTitleText) + strlen(fmt) + 256)*sizeof(char);
+	if (isGuiApp()) {
+		LPTSTR szTitle;
+		LPTSTR szTmp;
+		LPCTSTR szTitleText = "%s Warning";
+		LPCTSTR szDefaultModule = "LIBTIFF";
+		LPCTSTR szTmpModule = (module == NULL) ? szDefaultModule : module;
+		SIZE_T nBufSize = (strlen(szTmpModule) +
+				strlen(szTitleText) + strlen(fmt) + 256)*sizeof(char);
 
-	if ((szTitle = (LPTSTR)LocalAlloc(LMEM_FIXED, nBufSize)) == NULL)
-		return;
-	sprintf(szTitle, szTitleText, szTmpModule);
-	szTmp = szTitle + (strlen(szTitle)+2)*sizeof(char);
-	vsnprintf(szTmp, nBufSize-(strlen(szTitle)+2)*sizeof(char), fmt, ap);
-	MessageBoxA(GetFocus(), szTmp, szTitle, MB_OK | MB_ICONINFORMATION);
-	LocalFree(szTitle);
-
-	return;
+		if ((szTitle = (LPTSTR)LocalAlloc(LMEM_FIXED, nBufSize)) == NULL)
+			return;
+		sprintf(szTitle, szTitleText, szTmpModule);
+		szTmp = szTitle + (strlen(szTitle)+2)*sizeof(char);
+		vsnprintf(szTmp, nBufSize-(strlen(szTitle)+2)*sizeof(char), fmt, ap);
+		MessageBoxA(GetFocus(), szTmp, szTitle, MB_OK | MB_ICONINFORMATION);
+		LocalFree(szTitle);
+	} else {
+		if (module != NULL)
+			fprintf(stderr, "%s: ", module);
+		fprintf(stderr, "Warning, ");
+		vfprintf(stderr, fmt, ap);
+		fprintf(stderr, ".\n");
+	}
 #else
 	if (module != NULL)
 		fprintf(stderr, "%s: ", module);
@@ -437,22 +448,28 @@ static void
 Win32ErrorHandler(const char* module, const char* fmt, va_list ap)
 {
 #ifndef TIF_PLATFORM_CONSOLE
-	LPTSTR szTitle;
-	LPTSTR szTmp;
-	LPCTSTR szTitleText = "%s Error";
-	LPCTSTR szDefaultModule = "LIBTIFF";
-	LPCTSTR szTmpModule = (module == NULL) ? szDefaultModule : module;
-        SIZE_T nBufSize = (strlen(szTmpModule) +
-                        strlen(szTitleText) + strlen(fmt) + 256)*sizeof(char);
+	if (isGuiApp()) {
+		LPTSTR szTitle;
+		LPTSTR szTmp;
+		LPCTSTR szTitleText = "%s Error";
+		LPCTSTR szDefaultModule = "LIBTIFF";
+		LPCTSTR szTmpModule = (module == NULL) ? szDefaultModule : module;
+		SIZE_T nBufSize = (strlen(szTmpModule) +
+				strlen(szTitleText) + strlen(fmt) + 256)*sizeof(char);
 
-	if ((szTitle = (LPTSTR)LocalAlloc(LMEM_FIXED, nBufSize)) == NULL)
-		return;
-	sprintf(szTitle, szTitleText, szTmpModule);
-	szTmp = szTitle + (strlen(szTitle)+2)*sizeof(char);
-	vsnprintf(szTmp, nBufSize-(strlen(szTitle)+2)*sizeof(char), fmt, ap);
-	MessageBoxA(GetFocus(), szTmp, szTitle, MB_OK | MB_ICONEXCLAMATION);
-	LocalFree(szTitle);
-	return;
+		if ((szTitle = (LPTSTR)LocalAlloc(LMEM_FIXED, nBufSize)) == NULL)
+			return;
+		sprintf(szTitle, szTitleText, szTmpModule);
+		szTmp = szTitle + (strlen(szTitle)+2)*sizeof(char);
+		vsnprintf(szTmp, nBufSize-(strlen(szTitle)+2)*sizeof(char), fmt, ap);
+		MessageBoxA(GetFocus(), szTmp, szTitle, MB_OK | MB_ICONEXCLAMATION);
+		LocalFree(szTitle);
+	} else {
+		if (module != NULL)
+			fprintf(stderr, "%s: ", module);
+		vfprintf(stderr, fmt, ap);
+		fprintf(stderr, ".\n");
+	}
 #else
 	if (module != NULL)
 		fprintf(stderr, "%s: ", module);
