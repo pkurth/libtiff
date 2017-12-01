@@ -32,6 +32,7 @@ AC_LANG(C)
 
 dnl Compute the canonical host (run-time) system type variable
 AC_CANONICAL_HOST
+AX_GENERATE_CHANGELOG
 
 AM_INIT_AUTOMAKE(tar-pax)
 dnl Do not rebuild generated files every time

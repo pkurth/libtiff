@@ -48,6 +48,9 @@ EXTRA_DIST = \
 
 dist_doc_DATA = $(docfiles)
 
+@GENERATE_CHANGELOG_RULES@
+dist-hook: dist-ChangeLog
+
 distcheck-hook:
 	if [ -x "$(CMAKE)" ]; then \
 	  mkdir $(distdir)/_build/cmake \
