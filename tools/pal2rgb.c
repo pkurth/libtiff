@@ -186,8 +186,8 @@ main(int argc, char* argv[])
 	  tmsize_t tss_out = TIFFScanlineSize(out);
 	  if (tss_out / tss_in < 3) {
 		/*
-		 * BUG 2750: The following code does not know about chroma 
-         * subsampling of JPEG data. It assumes that the output buffer is 3x
+		 * BUG 2750: The following code does not know about chroma
+		 * subsampling of JPEG data. It assumes that the output buffer is 3x
 		 * the length of the input buffer due to exploding the palette into
 		 * RGB tuples. If this assumption is incorrect, it could lead to a
 		 * buffer overflow. Go ahead and fail now to prevent that.
