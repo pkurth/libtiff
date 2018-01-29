@@ -2185,7 +2185,6 @@ main(int argc, char* argv[])
   uint32 deftilelength = (uint32) 0;
   uint32 defrowsperstrip = (uint32) 0;
   uint32 dirnum = 0;
-  uint16 fname_len = (PATH_MAX < 24) ? 25 : (PATH_MAX + 1);
 
   TIFF *in = NULL;
   TIFF *out = NULL;
@@ -2211,8 +2210,9 @@ main(int argc, char* argv[])
   unsigned int  total_pages  = 0;
   unsigned int  total_images = 0;
   unsigned int  end_of_input = FALSE;
-  int    seg, length;
-  char   temp_filename[fname_len];
+  int    seg;
+  size_t length;
+  char   temp_filename[PATH_MAX + 16]; /* Extra space keeps the compiler from complaining */
 
   little_endian = *((unsigned char *)&little_endian) & '1';
 
