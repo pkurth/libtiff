@@ -93,7 +93,7 @@ uint32 TIFF_WriteOverview( TIFF *hTIFF, uint32 nXSize, uint32 nYSize,
 {
     toff_t	nBaseDirOffset;
     toff_t	nOffset;
-    tdir_t  iNumDir;
+    tdir_t	iNumDir;
 
     (void) bUseSubIFDs;
 
