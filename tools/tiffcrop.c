@@ -215,6 +215,8 @@ extern int getopt(int argc, char * const argv[], const char *optstring);
 #define DUMP_TEXT   1
 #define DUMP_RAW    2
 
+#define TIFF_DIR_MAX  65534
+
 /* Offsets into buffer for margins and fixed width and length segments */
 struct offset {
   uint32  tmargin;
@@ -2240,7 +2242,14 @@ main(int argc, char* argv[])
       return (-3);
 
     /* If only one input file is specified, we can use directory count */
-    total_images = TIFFNumberOfDirectories(in); 
+    total_images = TIFFNumberOfDirectories(in);
+    if (total_images > TIFF_DIR_MAX)
+      {
+      TIFFError (TIFFFileName(in), "File contains too many directories");
+      if (out != NULL)
+        (void) TIFFClose(out);
+      return (1);
+      }
     if (image_count == 0)
       {
       dirnum = 0;
