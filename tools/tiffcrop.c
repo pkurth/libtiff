@@ -2234,7 +2234,7 @@ main(int argc, char* argv[])
     pageNum = -1;
   else
     total_images = 0;
-  /* read multiple input files and write to output file(s) */
+  /* Read multiple input files and write to output file(s) */
   while (optind < argc - 1)
     {
     in = TIFFOpen (argv[optind], "r");
