@@ -183,7 +183,7 @@ TIFFWriteScanline(TIFF* tif, void* buf, uint32 row, uint16 sample)
  * NB: Image length must be setup before writing.
  */
 tmsize_t
-TIFFWriteEncodedStrip(TIFF* tif, uint32 strip, void* data, tmsize_t cc)
+TIFFWriteEncodedStrip(TIFF* tif, uint32 strip, const void* data, tmsize_t cc)
 {
 	static const char module[] = "TIFFWriteEncodedStrip";
 	TIFFDirectory *td = &tif->tif_dir;
