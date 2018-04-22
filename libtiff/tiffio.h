@@ -415,7 +415,7 @@ extern int TIFFRewriteDirectory(TIFF *);
 #if defined(c_plusplus) || defined(__cplusplus)
 extern void TIFFPrintDirectory(TIFF*, FILE*, long = 0);
 extern int TIFFReadScanline(TIFF* tif, void* buf, uint32 row, uint16 sample = 0);
-extern int TIFFWriteScanline(TIFF* tif, void* buf, uint32 row, uint16 sample = 0);
+extern int TIFFWriteScanline(TIFF* tif, const void* buf, uint32 row, uint16 sample = 0);
 extern int TIFFReadRGBAImage(TIFF*, uint32, uint32, uint32*, int = 0);
 extern int TIFFReadRGBAImageOriented(TIFF*, uint32, uint32, uint32*,
     int = ORIENTATION_BOTLEFT, int = 0);
@@ -468,7 +468,7 @@ extern tmsize_t TIFFReadEncodedStrip(TIFF* tif, uint32 strip, void* buf, tmsize_
 extern tmsize_t TIFFReadRawStrip(TIFF* tif, uint32 strip, void* buf, tmsize_t size);  
 extern tmsize_t TIFFReadEncodedTile(TIFF* tif, uint32 tile, void* buf, tmsize_t size);  
 extern tmsize_t TIFFReadRawTile(TIFF* tif, uint32 tile, void* buf, tmsize_t size);  
-extern tmsize_t TIFFWriteEncodedStrip(TIFF* tif, uint32 strip, void* data, tmsize_t cc);
+extern tmsize_t TIFFWriteEncodedStrip(TIFF* tif, uint32 strip, const void* data, tmsize_t cc);
 extern tmsize_t TIFFWriteRawStrip(TIFF* tif, uint32 strip, void* data, tmsize_t cc);  
 extern tmsize_t TIFFWriteEncodedTile(TIFF* tif, uint32 tile, void* data, tmsize_t cc);  
 extern tmsize_t TIFFWriteRawTile(TIFF* tif, uint32 tile, void* data, tmsize_t cc);  
