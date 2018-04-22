@@ -692,7 +692,7 @@ add_subdirectory(libtiff)
 add_subdirectory(tools)
 add_subdirectory(test)
 add_subdirectory(contrib)
-add_subdirectory(build)
+#add_subdirectory(build)
 add_subdirectory(man)
 add_subdirectory(html)
 
