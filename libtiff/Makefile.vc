@@ -84,10 +84,10 @@ tif_config.h:	tif_config.vc.h
 tiffconf.h:	tiffconf.vc.h
 	copy tiffconf.vc.h tiffconf.h
 
-libtiff.lib:	tif_config.h tiffconf.h $(OBJ)
+libtiff.lib:	tif_config.h tiffconf.h $(OBJ) ..\nmake.opt ..\port\libport.lib
 	$(AR) /out:libtiff.lib ..\port\libport.lib $(OBJ) $(LIBS)
 
-$(DLLNAME):	tif_config.h tiffconf.h libtiff.def $(OBJ)
+$(DLLNAME):	tif_config.h tiffconf.h libtiff.def $(OBJ) ..\nmake.opt ..\port\libport.lib
 	$(LD) /debug /dll /def:libtiff.def /out:$(DLLNAME) \
 	/implib:libtiff_i.lib ..\port\libport.lib $(OBJ) $(LIBS)
 	

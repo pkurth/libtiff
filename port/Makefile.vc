@@ -29,28 +29,28 @@
 
 !IF $(HAVE_STRTOL)
 STRTOL_OBJ =
-EXTRAFLAGS	= -DHAVE_STRTOL $(EXTRAFLAGS)
+# already defined in nmake.opt: EXTRAFLAGS	= -DHAVE_STRTOL $(EXTRAFLAGS)
 !ELSE
 STRTOL_OBJ = strtol.obj
 !ENDIF
 
 !IF $(HAVE_STRTOUL)
 STRTOUL_OBJ =
-EXTRAFLAGS	= -DHAVE_STRTOUL $(EXTRAFLAGS)
+# already defined in nmake.opt: EXTRAFLAGS	= -DHAVE_STRTOUL $(EXTRAFLAGS)
 !ELSE
 STRTOUL_OBJ = strtoul.obj
 !ENDIF
 
 !IF $(HAVE_STRTOLL)
 STRTOLL_OBJ =
-EXTRAFLAGS	= -DHAVE_STRTOLL $(EXTRAFLAGS)
+# already defined in nmake.opt: EXTRAFLAGS	= -DHAVE_STRTOLL $(EXTRAFLAGS)
 !ELSE
 STRTOLL_OBJ = strtoll.obj
 !ENDIF
 
 !IF $(HAVE_STRTOULL)
 STRTOULL_OBJ =
-EXTRAFLAGS	= -DHAVE_STRTOULL $(EXTRAFLAGS)
+# already defined in nmake.opt: EXTRAFLAGS	= -DHAVE_STRTOULL $(EXTRAFLAGS)
 !ELSE
 STRTOULL_OBJ = strtoull.obj
 !ENDIF
@@ -66,7 +66,7 @@ OBJ	= \
 
 all:	libport.lib
 
-libport.lib:	$(OBJ)
+libport.lib:	$(OBJ) ..\nmake.opt libport.h
 	$(AR) /out:libport.lib $(OBJ)
 
 clean:

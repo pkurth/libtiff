@@ -115,8 +115,8 @@ HAVE_STRTOL = 1
 HAVE_STRTOUL = 1
 
 # Users of MSVC 19.20 ("Visual Studio 2019") and later should set these to 1
-HAVE_STRTOLL = 0
-HAVE_STRTOULL = 0
+HAVE_STRTOLL = 1
+HAVE_STRTOULL = 1
 
 #
 # Pick debug or optimized build flags.  We default to an optimized build
@@ -222,3 +222,25 @@ EXTRAFLAGS	= -DAVOID_WIN32_FILEIO $(EXTRAFLAGS)
 !ELSE
 EXTRAFLAGS	= -DUSE_WIN32_FILEIO $(EXTRAFLAGS)
 !ENDIF
+
+# The definitions for HAVE_STRTOL, HAVE_STRTOUL, HAVE_STRTOLL, HAVE_STRTOULL
+# have to be done in nmake.opt because they are needed on Makefile.vc level
+# within the port/ directory and for .c-files not including tif_config.h but libport.h
+!IF $(HAVE_STRTOL)
+EXTRAFLAGS	= -DHAVE_STRTOL $(EXTRAFLAGS)
+!ENDIF
+
+!IF $(HAVE_STRTOUL)
+EXTRAFLAGS	= -DHAVE_STRTOUL $(EXTRAFLAGS)
+!ENDIF
+
+!IF $(HAVE_STRTOLL)
+EXTRAFLAGS	= -DHAVE_STRTOLL $(EXTRAFLAGS)
+!ENDIF
+
+!IF $(HAVE_STRTOULL)
+EXTRAFLAGS	= -DHAVE_STRTOULL $(EXTRAFLAGS)
+!ENDIF
+
+
+

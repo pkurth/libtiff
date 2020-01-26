@@ -116,10 +116,10 @@
 #  else
 #    define HAVE_SNPRINTF 1
 #  endif
-#  if _MSC_VER >= 1920 /* Visual Studio 2019 has strtoll/strtoull */
-#    define HAVE_STRTOLL 1
-#    define HAVE_STRTOULL 1
-#  endif
+/* The definitions for HAVE_STRTOL, HAVE_STRTOUL, HAVE_STRTOLL, HAVE_STRTOULL
+   have to be done in nmake.opt because they are needed on Makefile.vc level
+   within the port/ directory and for .c-files not including tif_config.h but the libport.h
+*/
 #endif
 
 /* Define to 1 if your processor stores words with the most significant byte
