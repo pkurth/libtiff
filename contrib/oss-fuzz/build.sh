@@ -70,7 +70,7 @@ else
         $WORK/lib/libjbig.a $WORK/lib/libjbig85.a -Wl,-Bstatic -llzma -Wl,-Bdynamic
 fi
 
-$CXX $CXXFLAGS -std=c++11 -I$WORK/include -I$SRC/libtiff/libtiff \
+$CXX $CXXFLAGS -std=c++11 -I$WORK/include -I$SRC/libtiff \
     $SRC/libtiff/contrib/oss-fuzz/tiff_info_fuzzer.cc -o $OUT/tiff_info_fuzzer \
     $LIB_FUZZING_ENGINE $WORK/lib/libtiffxx.a $WORK/lib/libtiff.a $WORK/lib/libz.a $WORK/lib/libjpeg.a \
     $WORK/lib/libjbig.a $WORK/lib/libjbig85.a -Wl,-Bstatic -llzma -Wl,-Bdynamic
