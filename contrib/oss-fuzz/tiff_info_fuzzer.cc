@@ -26,10 +26,10 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-#include "tiff/libtiff/tif_config.h"
-#include "tiff/libtiff/tiff.h"
-#include "tiff/libtiff/tiffio.h"
-#include "tiff/libtiff/tiffiop.h"
+#include "libtiff/tif_config.h"
+#include "libtiff/tiff.h"
+#include "libtiff/tiffio.h"
+#include "libtiff/tiffiop.h"
 
 constexpr size_t kMaxMalloc = 250000000; // 1/4 GB
 
