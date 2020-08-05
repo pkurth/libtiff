@@ -77,6 +77,6 @@ for fuzzer in $SRC/libtiff/contrib/oss-fuzz/*_fuzzer.cc; do
       $WORK/lib/libtiffxx.a $WORK/lib/libtiff.a $WORK/lib/libz.a \
       $WORK/lib/libjpeg.a $WORK/lib/libjbig.a $WORK/lib/libjbig85.a $EXTRA_ARGS
   cp tif.zip "$OUT/${fuzzer_basename}_seed_corpus.zip"
-  cp $SRC/tiff.dict "$OUT/${fuzzer_basename}_fuzzer.dict"
+  cp $SRC/tiff.dict "$OUT/${fuzzer_basename}.dict"
 
 done
