@@ -26,7 +26,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-#include "libtiff/tiff_config.h"
+#include "libtiff/tif_config.h"
 #include "libtiff/tiff.h"
 #include "libtiff/tiffio.h"
 #include "libtiff/tiffiop.h"
