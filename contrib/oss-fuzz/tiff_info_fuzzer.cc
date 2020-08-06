@@ -291,7 +291,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
   const std::string s(reinterpret_cast<const char*>(data), size);
   std::istringstream iss(s);
-  std::istream stream = iss;
+  std::istream& stream = iss;
 
   TiffStream ts;
   TIFF *tif = ts.makeFileStream(&stream);

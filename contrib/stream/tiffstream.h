@@ -7,6 +7,7 @@
 
 #include "tiffio.h"
 
+using namespace std;
 class TiffStream {
 
 public:
