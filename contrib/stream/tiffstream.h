@@ -3,7 +3,7 @@
 #ifndef _TIFF_STREAM_H_
 #define _TIFF_STREAM_H_
 
-#include <iostream.h>
+#include <iostream>
 
 #include "tiffio.h"
 
@@ -57,7 +57,7 @@ private:
 	ostream* m_outStream;
 	iostream* m_ioStream;
 	int m_streamLength;
-	
+
 };
 
 #endif // _TIFF_STREAM_H_
