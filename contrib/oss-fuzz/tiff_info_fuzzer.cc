@@ -15,7 +15,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <istream>
+#include <sstream>
 #include <iostream>
 
 #include <fcntl.h>
@@ -291,10 +291,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
   const std::string s(reinterpret_cast<const char*>(data), size);
   std::istringstream iss(s);
-  std::istream& stream = iss;
+  std::istream stream = iss;
 
   TiffStream ts;
-  TIFF *tif = ts.makeFileStream(stream);
+  TIFF *tif = ts.makeFileStream(&stream);
   if (tif == nullptr)
     return 0;
 
