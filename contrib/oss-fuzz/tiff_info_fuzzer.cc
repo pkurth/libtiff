@@ -12,16 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* This code is mostly copy-paste from two sources:
- * tiff/libtiff/tools/tiffinfo.c (most of the code)
- * libwebp/v0_2/examples/tiffdec.c (in-memory
- * parsing) A few other parts have been changed/added to make the code fit
- * together.
- */
-
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <istream>
+#include <iostream>
+
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -30,6 +26,7 @@
 #include "libtiff/tiff.h"
 #include "libtiff/tiffio.h"
 #include "libtiff/tiffiop.h"
+#include "contrib/stream/tiffstream.h"
 
 constexpr size_t kMaxMalloc = 250000000; // 1/4 GB
 
@@ -38,49 +35,6 @@ static bool rawdata = false;   // show raw/decoded data
 static bool showwords = false; // show data as bytes/words
 static bool readdata = true;   // read data in file
 static bool stoponerr = true;  // stop on first read error
-
-typedef struct {
-  const uint8_t *data;
-  toff_t size;
-  toff_t pos;
-} MyData;
-
-static int MyClose(thandle_t /* opaque */) { return 0; }
-
-static toff_t MySize(thandle_t opaque) {
-  const MyData *const my_data = (MyData *)opaque;
-  return my_data->size;
-}
-
-static toff_t MySeek(thandle_t opaque, toff_t offset, int whence) {
-  MyData *const my_data = (MyData *)opaque;
-  offset += (whence == SEEK_CUR) ? my_data->pos
-                                 : (whence == SEEK_SET) ? 0 : my_data->size;
-  if (offset > my_data->size)
-    return (toff_t)-1;
-  my_data->pos = offset;
-  return offset;
-}
-
-static int MyMapFile(thandle_t /* opaque */, void ** /* base */,
-                     toff_t * /* size */) {
-  return 0;
-}
-
-static void MyUnmapFile(thandle_t /* opaque */, void * /* base */,
-                        toff_t /* size*/) {}
-
-static tsize_t MyRead(thandle_t opaque, void *dst, tsize_t size) {
-  MyData *const my_data = (MyData *)opaque;
-  if (my_data->pos + size > my_data->size) {
-    size = my_data->size - my_data->pos;
-  }
-  if (size > 0) {
-    memcpy(dst, my_data->data + my_data->pos, size);
-    my_data->pos += size;
-  }
-  return size;
-}
 
 static void ShowStrip(tstrip_t strip, unsigned char *pp, uint32 nrow,
                       tsize_t scanline) {
@@ -326,27 +280,29 @@ static void tiffinfo(TIFF *tif, uint16 order, long flags, int is_image) {
   }
 }
 
-void MyTIFFErrorHandler(const char *, const char *, va_list) {}
-void MyTIFFErrorHandlerExt(thandle_t, const char *, const char *, va_list) {}
+void FuzzErrorHandler(const char *, const char *, va_list) {}
+void FuzzErrorHandlerExt(thandle_t, const char *, const char *, va_list) {}
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-  TIFFSetErrorHandler(MyTIFFErrorHandler);
-  TIFFSetErrorHandlerExt(MyTIFFErrorHandlerExt);
-  TIFFSetWarningHandler(MyTIFFErrorHandler);
-  TIFFSetWarningHandlerExt(MyTIFFErrorHandlerExt);
+  TIFFSetErrorHandler(FuzzErrorHandler);
+  TIFFSetErrorHandlerExt(FuzzErrorHandlerExt);
+  TIFFSetWarningHandler(FuzzErrorHandler);
+  TIFFSetWarningHandlerExt(FuzzErrorHandlerExt);
 
-  MyData my_data = {data, (toff_t)size, 0};
+  const std::string s(reinterpret_cast<const char*>(data), size);
+  std::istringstream iss(s);
+  std::istream& stream = iss;
 
-  TIFF *tif = TIFFClientOpen("memory", "rc", &my_data, MyRead, MyRead, MySeek,
-                             MyClose, MySize, MyMapFile, MyUnmapFile);
+  TiffStream ts;
+  TIFF *tif = ts.makeFileStream(stream);
   if (tif == nullptr)
     return 0;
 
   do {
     toff_t offset = 0;
-
     uint16 order = 0;
     long flags = 0;
+
     tiffinfo(tif, order, flags, 1);
     if (TIFFGetField(tif, TIFFTAG_EXIFIFD, &offset)) {
       if (TIFFReadEXIFDirectory(tif, offset)) {
@@ -354,7 +310,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
       }
     }
   } while (TIFFReadDirectory(tif));
-  TIFFClose(tif);
 
+  TIFFClose(tif);
   return 0;
 }
