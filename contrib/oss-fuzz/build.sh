@@ -54,7 +54,7 @@ if [ "$ARCHITECTURE" != "i386" ]; then
     apt-get install -y liblzma-dev
 fi
 
-cmake . -DCMAKE_INSTALL_PREFIX=$WORK -DBUILD_SHARED_LIBS=off -DEXTRA_DIST=on
+cmake . -DCMAKE_INSTALL_PREFIX=$WORK -DBUILD_SHARED_LIBS=off -DEXTRA_DIST=true
 make -j$(nproc)
 make install
 
