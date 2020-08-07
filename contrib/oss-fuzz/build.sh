@@ -54,9 +54,15 @@ if [ "$ARCHITECTURE" != "i386" ]; then
     apt-get install -y liblzma-dev
 fi
 
-cmake . -DCMAKE_INSTALL_PREFIX=$WORK -DBUILD_SHARED_LIBS=off -DEXTRA_DIST=true
+cmake . -DCMAKE_INSTALL_PREFIX=$WORK -DBUILD_SHARED_LIBS=off
 make -j$(nproc)
 make install
+
+$CXX $CXXFLAGS \
+    -I $SRC/libtiff/contrib/stream -I $WORK/include \
+    $SRC/libtiff/contrib/stream/tiffstream.cpp \
+    -c -o tiffstream.o
+ar -q $WORK/lib/libtiff.a tiffstream.o
 
 EXTRA_ARGS=""
 if [ "$ARCHITECTURE" != "i386" ]; then
