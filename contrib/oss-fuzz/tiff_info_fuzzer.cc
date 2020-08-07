@@ -38,6 +38,7 @@ void TIFFReadTileData(TIFF *tif, uint16 config) {
   TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
   TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tw);
   TIFFGetField(tif, TIFFTAG_TILELENGTH, &th);
+  
   if (config == PLANARCONFIG_CONTIG) {
     TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesperpixel);
   }
@@ -69,9 +70,11 @@ void TIFFReadStripData(TIFF *tif, uint16 config) {
   tsize_t scanline = TIFFScanlineSize(tif);
   TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
   TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsperstrip);
+
   if (config == PLANARCONFIG_CONTIG) {
     TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesperpixel);
   }
+
   for (uint32 row = 0; row < h; row += rowsperstrip) {
     for (tsample_t s = 0; s < samplesperpixel; s++) {
       uint32 nrow = (row + rowsperstrip > h ? h - row : rowsperstrip);
