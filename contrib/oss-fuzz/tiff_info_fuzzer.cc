@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fcntl.h>
 #include <iostream>
 #include <sstream>
 
 #include "contrib/stream/tiffstream.h"
-#include "libtiff/tif_config.h"
-#include "libtiff/tiffio.h"
 #include "libtiff/tiffiop.h"
 
 constexpr size_t kMaxMalloc = 250000000; // 1/4 GB
