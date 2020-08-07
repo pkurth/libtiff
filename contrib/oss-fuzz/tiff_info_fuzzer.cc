@@ -30,17 +30,8 @@
 
 constexpr size_t kMaxMalloc = 250000000; // 1/4 GB
 
-static bool showdata = false;  // show data
-static bool rawdata = false;   // show raw/decoded data
-
-void TIFFReadContigStripData(TIFF *tif) {
+void TIFFReadContigStripData(TIFF *tif, unsigned char* buf) {
   const tsize_t scanline = TIFFScanlineSize(tif);
-
-  if (TIFFStripSize(tif) > kMaxMalloc)
-    return;
-  unsigned char *buf = (unsigned char *)_TIFFmalloc(TIFFStripSize(tif));
-  if (buf == nullptr)
-    return;
 
   uint32 h = 0;
   uint32 rowsperstrip = (uint32)-1;
@@ -57,14 +48,9 @@ void TIFFReadContigStripData(TIFF *tif) {
   _TIFFfree(buf);
 }
 
-void TIFFReadSeparateStripData(TIFF *tif) {
+void TIFFReadSeparateStripData(TIFF *tif, unsigned char* buf) {
   tsize_t scanline = TIFFScanlineSize(tif);
 
-  if (TIFFStripSize(tif) > kMaxMalloc)
-    return;
-  unsigned char *buf = (unsigned char *)_TIFFmalloc(TIFFStripSize(tif));
-  if (buf == nullptr)
-    return;
   uint32 h = 0;
   uint32 rowsperstrip = (uint32)-1;
   tsample_t samplesperpixel = 0;
@@ -81,17 +67,11 @@ void TIFFReadSeparateStripData(TIFF *tif) {
       }
     }
   }
-  _TIFFfree(buf);
 }
 
-void TIFFReadContigTileData(TIFF *tif) {
+void TIFFReadContigTileData(TIFF *tif, unsigned char* buf) {
   tsize_t rowsize = TIFFTileRowSize(tif);
 
-  if (TIFFTileSize(tif) > kMaxMalloc)
-    return;
-  unsigned char *buf = (unsigned char *)_TIFFmalloc(TIFFTileSize(tif));
-  if (buf == nullptr)
-    return;
   uint32 tw = 0, th = 0, w = 0, h = 0;
 
   TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
@@ -105,17 +85,11 @@ void TIFFReadContigTileData(TIFF *tif) {
       }
     }
   }
-  _TIFFfree(buf);
 }
 
-void TIFFReadSeparateTileData(TIFF *tif) {
+void TIFFReadSeparateTileData(TIFF *tif, unsigned char* buf) {
   const tsize_t rowsize = TIFFTileRowSize(tif);
 
-  if (TIFFTileSize(tif) > kMaxMalloc)
-    return;
-  unsigned char *buf = (unsigned char *)_TIFFmalloc(TIFFTileSize(tif));
-  if (buf == nullptr)
-    return;
   uint32 tw = 0, th = 0, w = 0, h = 0;
   tsample_t s, samplesperpixel = 0;
 
@@ -133,78 +107,43 @@ void TIFFReadSeparateTileData(TIFF *tif) {
       }
     }
   }
-  _TIFFfree(buf);
 }
 
 void TIFFReadData(TIFF *tif) {
-  uint16 config = PLANARCONFIG_CONTIG;
+
+  uint16 config;
+  unsigned char *buf;
 
   TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &config);
   if (TIFFIsTiled(tif)) {
+
+    tmsize_t tileSize = TIFFTileSize(tif);
+    if (tileSize > kMaxMalloc)
+      return;
+    buf = (unsigned char *)_TIFFmalloc(tileSize);
+    if (buf == nullptr)
+      return;
+
     if (config == PLANARCONFIG_CONTIG)
-      TIFFReadContigTileData(tif);
+      TIFFReadContigTileData(tif, buf);
     else
-      TIFFReadSeparateTileData(tif);
+      TIFFReadSeparateTileData(tif, buf);
   } else {
+
+    tmsize_t stripSize = TIFFStripSize(tif);
+    if (stripSize > kMaxMalloc)
+      return;
+    buf = (unsigned char *)_TIFFmalloc(stripSize);
+    if (buf == nullptr)
+      return;
+
     if (config == PLANARCONFIG_CONTIG)
-      TIFFReadContigStripData(tif);
+      TIFFReadContigStripData(tif, buf);
     else
-      TIFFReadSeparateStripData(tif);
+      TIFFReadSeparateStripData(tif, buf);
   }
-}
 
-void TIFFReadRawData(TIFF *tif, int bitrev) {
-  const tstrip_t nstrips = TIFFNumberOfStrips(tif);
-  TIFFIsTiled(tif);
-  uint64 *stripbc = nullptr;
-
-  TIFFGetField(tif, TIFFTAG_STRIPBYTECOUNTS, &stripbc);
-
-  if (nstrips < 1)
-    return;
-
-  uint32 bufsize = (uint32)stripbc[0];
-  if (bufsize > kMaxMalloc)
-    return;
-  tdata_t buf = _TIFFmalloc(bufsize);
-
-  for (tstrip_t s = 0; s < nstrips; s++) {
-    if (stripbc[s] > bufsize) {
-      buf = _TIFFrealloc(buf, (tmsize_t)stripbc[s]);
-      bufsize = (uint32)stripbc[s];
-    }
-    if (buf == nullptr) {
-      break;
-    }
-    if (TIFFReadRawStrip(tif, s, buf, (tmsize_t)stripbc[s]) < 0) {
-      break;
-    } else if (showdata) {
-      if (bitrev) {
-        TIFFReverseBits(reinterpret_cast<uint8 *>(buf), (tmsize_t)stripbc[s]);
-      }
-    }
-  }
-  if (buf != nullptr)
-    _TIFFfree(buf);
-}
-
-static void tiffinfo(TIFF *tif, uint16 order, long flags, int is_image) {
-  TIFFPrintDirectory(tif, stdout, flags);
-  if (!is_image)
-    return;
-  if (rawdata) {
-    if (order) {
-      uint16 o;
-      TIFFGetFieldDefaulted(tif, TIFFTAG_FILLORDER, &o);
-      TIFFReadRawData(tif, o != order);
-    } else {
-      TIFFReadRawData(tif, 0);
-    }
-  } else {
-    if (order)
-      TIFFSetField(tif, TIFFTAG_FILLORDER, order);
-    TIFFReadData(tif);
-  }
+  _TIFFfree(buf);
 }
 
 void FuzzErrorHandler(const char *, const char *, va_list) {}
@@ -227,13 +166,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
   do {
     toff_t offset = 0;
-    uint16 order = 0;
-    long flags = 0;
 
-    tiffinfo(tif, order, flags, 1);
+    TIFFPrintDirectory(tif, stdout, 0); // TODO(rjotwani): replace stdout
+    TIFFReadData(tif);
     if (TIFFGetField(tif, TIFFTAG_EXIFIFD, &offset)) {
       if (TIFFReadEXIFDirectory(tif, offset)) {
-        tiffinfo(tif, order, flags, 0);
+        TIFFPrintDirectory(tif, stdout, 0); // TODO(rjotwani): replace stdout
       }
     }
   } while (TIFFReadDirectory(tif));
