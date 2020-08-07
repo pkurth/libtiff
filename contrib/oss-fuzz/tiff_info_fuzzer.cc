@@ -48,13 +48,14 @@ void TIFFReadTileData(TIFF *tif, uint16 config) {
   for (uint32 row = 0; row < h; row += th) {
     for (uint32 col = 0; col < w; col += tw) {
       for (tsample_t s = 0; s < samplesperpixel; s++) {
-        if (TIFFReadTile(tif, buf, col, row, 0, 0) < 0) {
-          break;
+        if (TIFFReadTile(tif, buf, col, row, 0, s) < 0) {
+          goto exit;
         }
       }
     }
   }
 
+exit:
   _TIFFfree(buf);
 }
 
@@ -79,11 +80,12 @@ void TIFFReadStripData(TIFF *tif, uint16 config) {
       uint32 nrow = (row + rowsperstrip > h ? h - row : rowsperstrip);
       tstrip_t strip = TIFFComputeStrip(tif, row, s);
       if (TIFFReadEncodedStrip(tif, strip, buf, nrow * scanline) < 0) {
-        break;
+        goto exit;
       }
     }
   }
 
+exit:
   _TIFFfree(buf);
 }
 
