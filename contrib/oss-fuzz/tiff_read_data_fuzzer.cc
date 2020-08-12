@@ -118,9 +118,8 @@ void TIFFReadRawData(TIFF *tif) {
 
     TIFFReverseBits(reinterpret_cast<uint8 *>(buf), (tmsize_t)stripbc[s]);
   }
-}
-
-_TIFFfree(buf);
+  
+  _TIFFfree(buf);
 }
 
 void TIFFReadData(TIFF *tif) {
