@@ -38,7 +38,7 @@ void TIFFReadTileData(TIFF *tif, uint16 config) {
   TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
   TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tw);
   TIFFGetField(tif, TIFFTAG_TILELENGTH, &th);
-  
+
   if (config == PLANARCONFIG_CONTIG) {
     TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesperpixel);
   }
@@ -90,6 +90,8 @@ exit:
 }
 
 void TIFFReadData(TIFF *tif) {
+  TIFFReadRawData(tif, 0);
+
   uint16 config = PLANARCONFIG_CONTIG;
   TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &config);
 
@@ -98,6 +100,40 @@ void TIFFReadData(TIFF *tif) {
   } else {
     TIFFReadStripData(tif, config);
   }
+}
+
+void TIFFReadRawData(TIFF *tif, int bitrev) {
+  const tstrip_t nstrips = TIFFNumberOfStrips(tif);
+  uint64 *stripbc = nullptr;
+
+  TIFFGetField(tif, TIFFTAG_STRIPBYTECOUNTS, &stripbc);
+
+  if (nstrips < 1)
+    return;
+
+  uint32 bufsize = (uint32)stripbc[0];
+  if (bufsize > kMaxMalloc)
+    return;
+  tdata_t buf = _TIFFmalloc(bufsize);
+
+  for (tstrip_t s = 0; s < nstrips; s++) {
+    if (stripbc[s] > bufsize) {
+      buf = _TIFFrealloc(buf, (tmsize_t)stripbc[s]);
+      bufsize = (uint32)stripbc[s];
+    }
+    if (buf == nullptr) {
+      break;
+    }
+    if (TIFFReadRawStrip(tif, s, buf, (tmsize_t)stripbc[s]) < 0) {
+      break;
+    } else if (showdata) {
+      if (bitrev) {
+        TIFFReverseBits(reinterpret_cast<uint8 *>(buf), (tmsize_t)stripbc[s]);
+      }
+    }
+  }
+  if (buf != nullptr)
+    _TIFFfree(buf);
 }
 
 void FuzzErrorHandler(const char *, const char *, va_list) {}
