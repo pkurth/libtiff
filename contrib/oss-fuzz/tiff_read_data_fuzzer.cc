@@ -20,15 +20,15 @@
 
 constexpr size_t kMaxMalloc = 250000000; // 1/4 GB
 
-unsigned char *getBuffer(tmsize_t bufSize) {
+void *getBuffer(tmsize_t bufSize) {
   if (bufSize > kMaxMalloc)
     return nullptr;
-  return (unsigned char *)_TIFFmalloc(bufSize);
+  return _TIFFmalloc(bufSize);
 }
 
 void TIFFReadTileData(TIFF *tif, uint16 config) {
 
-  unsigned char *buf = getBuffer(TIFFTileSize(tif));
+  unsigned char *buf = (unsigned char *) getBuffer(TIFFTileSize(tif));
   if (buf == nullptr)
     return;
 
@@ -59,7 +59,7 @@ exit:
 
 void TIFFReadStripData(TIFF *tif, uint16 config) {
 
-  unsigned char *buf = getBuffer(TIFFStripSize(tif));
+  unsigned char *buf = (unsigned char *) getBuffer(TIFFStripSize(tif));
   if (buf == nullptr)
     return;
 
@@ -89,8 +89,42 @@ exit:
   _TIFFfree(buf);
 }
 
+void TIFFReadRawData(TIFF *tif) {
+
+  const tstrip_t numStrips = TIFFNumberOfStrips(tif);
+
+  uint64 *stripbc = nullptr;
+  TIFFGetField(tif, TIFFTAG_STRIPBYTECOUNTS, &stripbc);
+
+  if (numStrips < 1)
+    return;
+
+  uint32 bufSize = (uint32)stripbc[0];
+  tdata_t buf = (tdata_t) getBuffer(bufSize);
+
+  for (tstrip_t s = 0; s < numStrips; s++) {
+
+    if (stripbc[s] > bufSize) {
+      buf = _TIFFrealloc(buf, (tmsize_t) stripbc[s]);
+      bufSize = (uint32) stripbc[s];
+    }
+    
+    if (buf == nullptr)
+      return;
+
+    if (TIFFReadRawStrip(tif, s, buf, (tmsize_t)stripbc[s]) < 0)
+      break;
+
+    TIFFReverseBits(reinterpret_cast<uint8 *>(buf), (tmsize_t) stripbc[s]);
+    }
+  }
+
+  _TIFFfree(buf);
+}
+
 void TIFFReadData(TIFF *tif) {
-  TIFFReadRawData(tif, 0);
+
+  TIFFReadRawData(tif);
 
   uint16 config = PLANARCONFIG_CONTIG;
   TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &config);
@@ -100,40 +134,6 @@ void TIFFReadData(TIFF *tif) {
   } else {
     TIFFReadStripData(tif, config);
   }
-}
-
-void TIFFReadRawData(TIFF *tif, int bitrev) {
-  const tstrip_t nstrips = TIFFNumberOfStrips(tif);
-  uint64 *stripbc = nullptr;
-
-  TIFFGetField(tif, TIFFTAG_STRIPBYTECOUNTS, &stripbc);
-
-  if (nstrips < 1)
-    return;
-
-  uint32 bufsize = (uint32)stripbc[0];
-  if (bufsize > kMaxMalloc)
-    return;
-  tdata_t buf = _TIFFmalloc(bufsize);
-
-  for (tstrip_t s = 0; s < nstrips; s++) {
-    if (stripbc[s] > bufsize) {
-      buf = _TIFFrealloc(buf, (tmsize_t)stripbc[s]);
-      bufsize = (uint32)stripbc[s];
-    }
-    if (buf == nullptr) {
-      break;
-    }
-    if (TIFFReadRawStrip(tif, s, buf, (tmsize_t)stripbc[s]) < 0) {
-      break;
-    } else if (showdata) {
-      if (bitrev) {
-        TIFFReverseBits(reinterpret_cast<uint8 *>(buf), (tmsize_t)stripbc[s]);
-      }
-    }
-  }
-  if (buf != nullptr)
-    _TIFFfree(buf);
 }
 
 void FuzzErrorHandler(const char *, const char *, va_list) {}
