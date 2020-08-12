@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 
@@ -28,7 +29,7 @@ void *getBuffer(tmsize_t bufSize) {
 
 void TIFFReadTileData(TIFF *tif, uint16 config) {
 
-  unsigned char *buf = (unsigned char *) getBuffer(TIFFTileSize(tif));
+  unsigned char *buf = (unsigned char *)getBuffer(TIFFTileSize(tif));
   if (buf == nullptr)
     return;
 
@@ -59,7 +60,7 @@ exit:
 
 void TIFFReadStripData(TIFF *tif, uint16 config) {
 
-  unsigned char *buf = (unsigned char *) getBuffer(TIFFStripSize(tif));
+  unsigned char *buf = (unsigned char *)getBuffer(TIFFStripSize(tif));
   if (buf == nullptr)
     return;
 
@@ -77,7 +78,7 @@ void TIFFReadStripData(TIFF *tif, uint16 config) {
 
   for (uint32 row = 0; row < h; row += rowsperstrip) {
     for (tsample_t s = 0; s < samplesperpixel; s++) {
-      uint32 nrow = (row + rowsperstrip > h ? h - row : rowsperstrip);
+      uint32 nrow = std::min(h - row, rowsperstrip);
       tstrip_t strip = TIFFComputeStrip(tif, row, s);
       if (TIFFReadEncodedStrip(tif, strip, buf, nrow * scanline) < 0) {
         goto exit;
@@ -100,26 +101,26 @@ void TIFFReadRawData(TIFF *tif) {
     return;
 
   uint32 bufSize = (uint32)stripbc[0];
-  tdata_t buf = (tdata_t) getBuffer(bufSize);
+  tdata_t buf = (tdata_t)getBuffer(bufSize);
 
   for (tstrip_t s = 0; s < numStrips; s++) {
 
     if (stripbc[s] > bufSize) {
-      buf = _TIFFrealloc(buf, (tmsize_t) stripbc[s]);
-      bufSize = (uint32) stripbc[s];
+      buf = _TIFFrealloc(buf, (tmsize_t)stripbc[s]);
+      bufSize = (uint32)stripbc[s];
     }
-    
+
     if (buf == nullptr)
       return;
 
     if (TIFFReadRawStrip(tif, s, buf, (tmsize_t)stripbc[s]) < 0)
       break;
 
-    TIFFReverseBits(reinterpret_cast<uint8 *>(buf), (tmsize_t) stripbc[s]);
-    }
+    TIFFReverseBits(reinterpret_cast<uint8 *>(buf), (tmsize_t)stripbc[s]);
   }
+}
 
-  _TIFFfree(buf);
+_TIFFfree(buf);
 }
 
 void TIFFReadData(TIFF *tif) {
@@ -154,15 +155,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   if (tif == nullptr)
     return 0;
 
-  toff_t offset;
+  toff_t exif_offset;
   do {
-    offset = 0;
+    exif_offset = 0;
     FILE *f = fopen("/dev/null", "w");
     TIFFPrintDirectory(tif, f, 0);
 
     TIFFReadData(tif);
-    if (TIFFGetField(tif, TIFFTAG_EXIFIFD, &offset)) {
-      TIFFReadEXIFDirectory(tif, offset);
+    if (TIFFGetField(tif, TIFFTAG_EXIFIFD, &exif_offset)) {
+      TIFFReadEXIFDirectory(tif, exif_offset);
     }
   } while (TIFFReadDirectory(tif));
 
