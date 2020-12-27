@@ -46,12 +46,12 @@
 #define EXIT_FAILURE 1
 #endif
 
-static const char* usageMsg[] = {
+static const char* usage_info[] = {
 "usage: tiffset [options] filename",
 "where options are:",
-" -s <tagname> [count] <value>...   set the tag value",
-" -u <tagname> to unset the tag",
-" -d <dirno> set the directory",
+" -s  <tagname> [count] <value>...   set the tag value",
+" -u  <tagname> to unset the tag",
+" -d  <dirno> set the directory",
 " -sd <diroff> set the subdirectory",
 " -sf <tagname> <filename>  read the tag value from file (for ASCII tags only)",
 " -h  this help screen",
@@ -65,8 +65,8 @@ usage(int code)
 	FILE * out = (code == EXIT_SUCCESS) ? stdout : stderr;
 
 	fprintf(out, "%s\n\n", TIFFGetVersion());
-	for (i = 0; usageMsg[i]; i++)
-		fprintf(out, "%s\n", usageMsg[i]);
+	for (i = 0; usage_info[i]; i++)
+		fprintf(out, "%s\n", usage_info[i]);
 	exit(code);
 }
 

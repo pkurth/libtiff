@@ -55,6 +55,10 @@
 #define EXIT_FAILURE  1
 #endif
 
+#ifndef HAVE_GETOPT
+extern int getopt(int argc, char * const argv[], const char *optstring);
+#endif
+
 float	defxres = 204.;		/* default x resolution (pixels/inch) */
 float	defyres = 98.;		/* default y resolution (lines/inch) */
 const float half = 0.5;
@@ -433,7 +437,7 @@ main(int argc, char** argv)
     return (EXIT_SUCCESS);
 }
 
-const char* stuff[] = {
+const char* usage_info[] = {
 "usage: fax2ps [options] [input.tif ...]",
 "where options are:",
 " -w            suppress warning messages",
@@ -454,8 +458,8 @@ usage(int code)
 	FILE * out = (code == EXIT_SUCCESS) ? stdout : stderr;
 
         fprintf(out, "%s\n\n", TIFFGetVersion());
-	for (i = 0; stuff[i] != NULL; i++)
-		fprintf(out, "%s\n", stuff[i]);
+	for (i = 0; usage_info[i] != NULL; i++)
+		fprintf(out, "%s\n", usage_info[i]);
 	exit(code);
 }
 

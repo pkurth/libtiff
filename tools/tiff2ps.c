@@ -47,6 +47,10 @@
 #define EXIT_FAILURE 1
 #endif
 
+#ifndef HAVE_GETOPT
+extern int getopt(int argc, char * const argv[], const char *optstring);
+#endif
+
 /*
  * Revision history
  * 2013-Jan-21
@@ -3087,7 +3091,7 @@ tsize_t Ascii85EncodeBlock( uint8 * ascii85_p, unsigned f_eod, const uint8 * raw
 #endif	/* EXP_ASCII85ENCODER */
 
 
-const char* stuff[] = {
+const char* usage_info[] = {
 "usage: tiff2ps [options] input.tif ...",
 "where options are:",
 " -1            generate PostScript Level 1 (default)",
@@ -3131,8 +3135,8 @@ usage(int code)
 	FILE * out = (code == EXIT_SUCCESS) ? stdout : stderr;
 
 	fprintf(out, "%s\n\n", TIFFGetVersion());
-	for (i = 0; stuff[i] != NULL; i++)
-		fprintf(out, "%s\n", stuff[i]);
+	for (i = 0; usage_info[i] != NULL; i++)
+		fprintf(out, "%s\n", usage_info[i]);
 	exit(code);
 }
 

@@ -49,6 +49,10 @@
 #define EXIT_FAILURE 1
 #endif
 
+#ifndef HAVE_GETOPT
+extern int getopt(int argc, char * const argv[], const char *optstring);
+#endif
+
 static TIFFErrorHandler old_error_handler = 0;
 static int status = EXIT_SUCCESS;       /* exit status */
 static int showdata = 0;		/* show data */
@@ -172,7 +176,7 @@ main(int argc, char* argv[])
 	return (status);
 }
 
-static const char* stuff[] = {
+static const char* usage_info[] = {
 "usage: tiffinfo [options] input...",
 "where options are:",
 " -D		read data",
@@ -198,8 +202,8 @@ usage(int code)
 	FILE * out = (code == EXIT_SUCCESS) ? stdout : stderr;
 
         fprintf(out, "%s\n\n", TIFFGetVersion());
-	for (i = 0; stuff[i] != NULL; i++)
-		fprintf(out, "%s\n", stuff[i]);
+	for (i = 0; usage_info[i] != NULL; i++)
+		fprintf(out, "%s\n", usage_info[i]);
 	exit(code);
 }
 
