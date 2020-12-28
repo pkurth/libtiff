@@ -109,7 +109,7 @@ extern char* optarg;
 #endif
 
 void
-usage_info()
+usage()
 {
 	fprintf(stderr, "usage: tiffdump [-h] [-o offset] [-m maxitems] file.tif ...\n");
 	exit(EXIT_FAILURE);
@@ -140,11 +140,11 @@ main(int argc, char* argv[])
 			maxitems = strtoul(optarg, NULL, 0);
 			break;
 		default:
-			usage_info();
+			usage();
 		}
 	}
 	if (optind >= argc)
-		usage_info();
+		usage();
 	for (; optind < argc; optind++) {
 		fd = open(argv[optind], O_RDONLY|O_BINARY, 0);
 		if (fd < 0) {
