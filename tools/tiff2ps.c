@@ -47,6 +47,10 @@
 #define EXIT_FAILURE 1
 #endif
 
+#ifndef HAVE_GETOPT
+extern int getopt(int argc, char * const argv[], const char *optstring);
+#endif
+
 /*
  * Revision history
  * 2013-Jan-21
