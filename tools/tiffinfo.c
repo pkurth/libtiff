@@ -49,6 +49,10 @@
 #define EXIT_FAILURE 1
 #endif
 
+#ifndef HAVE_GETOPT
+extern int getopt(int argc, char * const argv[], const char *optstring);
+#endif
+
 static TIFFErrorHandler old_error_handler = 0;
 static int status = EXIT_SUCCESS;       /* exit status */
 static int showdata = 0;		/* show data */
