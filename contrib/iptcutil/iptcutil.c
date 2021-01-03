@@ -17,7 +17,7 @@
 # include <fcntl.h>
 #endif
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN32) || defined(_WIN64)
 #define STRNICMP strnicmp
 #else 
 #define STRNICMP strncasecmp
