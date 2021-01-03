@@ -55,6 +55,10 @@
 #define EXIT_FAILURE  1
 #endif
 
+#ifndef HAVE_GETOPT
+extern int getopt(int argc, char * const argv[], const char *optstring);
+#endif
+
 float	defxres = 204.;		/* default x resolution (pixels/inch) */
 float	defyres = 98.;		/* default y resolution (lines/inch) */
 const float half = 0.5;
