@@ -22,6 +22,7 @@
  * OF THIS SOFTWARE.
  */
 #include "tif_config.h"
+#include "libport.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -53,10 +54,6 @@
 #endif
 #ifndef EXIT_FAILURE
 #define EXIT_FAILURE  1
-#endif
-
-#ifndef HAVE_GETOPT
-extern int getopt(int argc, char * const argv[], const char *optstring);
 #endif
 
 float	defxres = 204.;		/* default x resolution (pixels/inch) */
