@@ -23,6 +23,7 @@
  */
 
 #include "tif_config.h"
+#include "libport.h"
 
 #include <stdio.h>
 #include <stdlib.h>			/* for atof */
@@ -34,10 +35,6 @@
 # include <unistd.h>
 #endif
 
-#ifdef NEED_LIBPORT
-# include "libport.h"
-#endif
-
 #include "tiffio.h"
 
 #ifndef EXIT_SUCCESS
@@ -46,6 +43,7 @@
 #ifndef EXIT_FAILURE
 #define EXIT_FAILURE 1
 #endif
+
 
 /*
  * Revision history
