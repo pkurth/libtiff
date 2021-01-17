@@ -51,10 +51,10 @@ static const char TIFF_SUFFIX[] = ".tif";
 static char fname[PATH_LENGTH] = "";
 
 static void
-newfilename(long fnum)
+newfilename(int64_t fnum)
 {
-        static long lastTurn = 0;
-        static short defname;
+        static int64_t lastTurn = 0;
+        static int16_t defname;
         static char *fpnt;
 
         if (fnum == 0) {
@@ -67,7 +67,7 @@ newfilename(long fnum)
                         defname = 1;
                 }
         }
-        const long MAXFILES = 17576;
+        const int64_t MAXFILES = 17576;
         if (fnum == MAXFILES) {
                 if (!defname || fname[0] == 'z') {
                         fprintf(stderr, "tiffsplit: too many files.\n");
@@ -105,18 +105,18 @@ newfilename(long fnum)
         fpnt[2] = (char)(fnum % 26) + 'a';
 }
 
-static int
+static int32_t
 cpStrips(TIFF* in, TIFF* out)
 {
         tmsize_t bufsize = TIFFStripSize(in);
-        unsigned char *buf = (unsigned char *)_TIFFmalloc(bufsize);
+        uint8_t *buf = (uint8_t *)_TIFFmalloc(bufsize);
 
         if (buf == NULL) {
                 return (0);
         }
 
         tstrip_t ns = TIFFNumberOfStrips(in);
-        uint64 *bytecounts = NULL;
+        uint64_t *bytecounts = NULL;
 
         if (!TIFFGetField(in, TIFFTAG_STRIPBYTECOUNTS, &bytecounts)) {
                 fprintf(stderr, "tiffsplit: strip byte counts are missing\n");
@@ -124,8 +124,8 @@ cpStrips(TIFF* in, TIFF* out)
                 return (0);
         }
         for (tstrip_t s = 0; s < ns; s++) {
-                if (bytecounts[s] > (uint64)bufsize) {
-                        buf = (unsigned char *)_TIFFrealloc(buf, (tmsize_t)bytecounts[s]);
+                if (bytecounts[s] > (uint64_t)bufsize) {
+                        buf = (uint8_t *)_TIFFrealloc(buf, (tmsize_t)bytecounts[s]);
                         if (!buf)
                                 return (0);
                         bufsize = (tmsize_t)bytecounts[s];
@@ -144,14 +144,14 @@ static int
 cpTiles(TIFF* in, TIFF* out)
 {
         tmsize_t bufsize = TIFFTileSize(in);
-        unsigned char *buf = (unsigned char *)_TIFFmalloc(bufsize);
+        uint8_t *buf = (uint8_t *)_TIFFmalloc(bufsize);
 
         if (buf == NULL) {
                 return (0);
         }
 
         const ttile_t nt = TIFFNumberOfTiles(in);
-        uint64 *bytecounts = NULL;
+        uint64_t *bytecounts = NULL;
 
         if (!TIFFGetField(in, TIFFTAG_TILEBYTECOUNTS, &bytecounts)) {
                 fprintf(stderr, "tiffsplit: tile byte counts are missing\n");
@@ -159,8 +159,8 @@ cpTiles(TIFF* in, TIFF* out)
                 return (0);
         }
         for (ttile_t t = 0; t < nt; t++) {
-                if (bytecounts[t] > (uint64) bufsize) {
-                        buf = (unsigned char *)_TIFFrealloc(buf, (tmsize_t)bytecounts[t]);
+                if (bytecounts[t] > (uint64_t) bufsize) {
+                        buf = (uint8_t *)_TIFFrealloc(buf, (tmsize_t)bytecounts[t]);
                         if (!buf)
                                 return (0);
                         bufsize = (tmsize_t)bytecounts[t];
@@ -178,36 +178,36 @@ cpTiles(TIFF* in, TIFF* out)
 static int
 tiffcp(TIFF* in, TIFF* out)
 {
-        uint32 longv;
+        uint32_t longv;
         CopyField(TIFFTAG_SUBFILETYPE, longv);
 
         {
-                uint32 w;
+                uint32_t w;
                 CopyField(TIFFTAG_TILEWIDTH, w);
                 CopyField(TIFFTAG_IMAGEWIDTH, w);
         }
 
         {
-                uint32 l;
+                uint32_t l;
                 CopyField(TIFFTAG_TILELENGTH, l);
                 CopyField(TIFFTAG_IMAGELENGTH, l);
         }
 
         {
-                uint16 bitspersample;
+                uint16_t bitspersample;
                 CopyField(TIFFTAG_BITSPERSAMPLE, bitspersample);
         }
 
         {
-                uint16 samplesperpixel;
+                uint16_t samplesperpixel;
                 CopyField(TIFFTAG_SAMPLESPERPIXEL, samplesperpixel);
         }
 
         {
-                uint16 compression;
+                uint16_t compression;
                 CopyField(TIFFTAG_COMPRESSION, compression);
                 if (compression == COMPRESSION_JPEG) {
-                        uint32 count = 0;
+                        uint32_t count = 0;
                         void *table = NULL;
                         if (TIFFGetField(in, TIFFTAG_JPEGTABLES, &count, &table)
                             && count > 0 && table) {
@@ -216,7 +216,7 @@ tiffcp(TIFF* in, TIFF* out)
                 }
         }
 
-        uint16 shortv;
+        uint16_t shortv;
         CopyField(TIFFTAG_PHOTOMETRIC, shortv);
         CopyField(TIFFTAG_PREDICTOR, shortv);
         CopyField(TIFFTAG_THRESHHOLDING, shortv);
@@ -239,15 +239,15 @@ tiffcp(TIFF* in, TIFF* out)
         CopyField(TIFFTAG_TILEDEPTH, longv);
         CopyField(TIFFTAG_SAMPLEFORMAT, shortv);
         {
-                uint16 *shortav;
+                uint16_t *shortav;
                 CopyField2(TIFFTAG_EXTRASAMPLES, shortv, shortav);
         }
         {
-                uint16 *red, *green, *blue;
+                uint16_t *red, *green, *blue;
                 CopyField3(TIFFTAG_COLORMAP, red, green, blue);
         }
         {
-                uint16 shortv2;
+                uint16_t shortv2;
                 CopyField2(TIFFTAG_PAGENUMBER, shortv, shortv2);
         }
 
@@ -292,7 +292,7 @@ main(int argc, char* argv[])
                 return (EXIT_FAILURE);
         }
 
-        long fnum = 0;
+        int64_t fnum = 0;
         do {
                 newfilename(fnum);
                 fnum++;
