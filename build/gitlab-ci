@@ -48,8 +48,8 @@ wget https://github.com/facebook/zstd/archive/v${ZSTD_VER}.tar.gz
 tar xvzf v${ZSTD_VER}.tar.gz
 cd zstd-${ZSTD_VER}/lib
 # Faster build
-make -j3 PREFIX=/tmp ZSTD_LEGACY_SUPPORT=0 CFLAGS=-O1
-make install PREFIX=/tmp ZSTD_LEGACY_SUPPORT=0 CFLAGS=-O1
+make -j3 PREFIX=/tmp ZSTD_LEGACY_SUPPORT=0 CFLAGS="-O1 -fPIC"
+make install PREFIX=/tmp ZSTD_LEGACY_SUPPORT=0 CFLAGS="-O1 -fPIC"
 cd ../..
 rm -rf zstd-${ZSTD_VER}
 
