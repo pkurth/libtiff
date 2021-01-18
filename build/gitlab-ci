@@ -3,7 +3,7 @@
 # with travis, but may be used by hand as well.
 
 # Library versions to use
-ZSTD_VER=1.4.4
+ZSTD_VER=1.4.8
 WEBP_VER=1.1.0
 
 set -e
