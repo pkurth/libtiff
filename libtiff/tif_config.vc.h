@@ -66,14 +66,14 @@
 */
 
 /* Visual Studio 2015 / VC 14 / MSVC 19.00 finally has snprintf() */
-#if (defined(_MSC_VER) && _MSC_VER < 1900)  || !defined(__MINGW32__) || !defined(__MINGW64__)
+#if (defined(_MSC_VER) && _MSC_VER < 1900)  || !defined(__MINGW32__) || !defined(__MINGW64__) /* Visual C++ 2015 */
 #  define snprintf _snprintf
 #else
 #  define HAVE_SNPRINTF 1
 #endif
 #define HAVE_STRTOL 1
 #define HAVE_STRTOUL 1
-#if (defined(_MSC_VER) && _MSC_VER >= 1900)  || defined(__MINGW32__) || defined(__MINGW64__)
+#if (defined(_MSC_VER) && _MSC_VER >= 1900)  || defined(__MINGW32__) || defined(__MINGW64__) /* Visual Studio 2015 added strtoll/strtoull */
 #  define HAVE_STRTOLL 1
 #  define HAVE_STRTOULL 1
 #endif
