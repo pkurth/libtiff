@@ -23,6 +23,10 @@ cmake-ninja:
     - sh build/gitlab-ci cmake "Ninja" Debug
 
 coverity:
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master" && $CI_PROJECT_NAMESPACE != "libtiff"'
+      when: never
+    - when: always
   stage: static-analysis
   script:
     - sh build/gitlab-ci coverity "Ninja" Debug
