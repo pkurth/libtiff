@@ -145,8 +145,8 @@ int rewrite_test(const char *filename, uint32_t width, int length, int bigtiff,
     int			i;
     unsigned char	*buf;
     uint64_t		*rowoffset, *rowbytes;
-    uint64_t		*upd_rowoffset;
-    uint64_t		*upd_bytecount;
+    uint64_t		*upd_rowoffset = NULL;
+    uint64_t		*upd_bytecount = NULL;
 
     buf = calloc(1, width);
     assert(buf);
@@ -317,6 +317,14 @@ int rewrite_test(const char *filename, uint32_t width, int length, int bigtiff,
     /* Something goes wrong; close file and return unsuccessful status. */
     TIFFClose(tif);
     free(buf);
+    if( upd_rowoffset != NULL )
+    {
+        _TIFFfree( upd_rowoffset );
+    }
+    if ( upd_bytecount != NULL )
+    {
+        _TIFFfree( upd_bytecount );
+    }
     /*  unlink(filename); */
 
     return 1;
