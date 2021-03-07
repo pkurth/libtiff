@@ -235,6 +235,7 @@ int rewrite_test(const char *filename, uint32_t width, int length, int bigtiff,
     }
 
     _TIFFfree( upd_rowoffset );
+    upd_rowoffset = NULL;
 
     upd_bytecount = (uint64_t *) _TIFFmalloc(sizeof(uint64_t) * length);
     for( i = 0; i < length; i++ )
@@ -248,6 +249,7 @@ int rewrite_test(const char *filename, uint32_t width, int length, int bigtiff,
     }
 
     _TIFFfree( upd_bytecount );
+    upd_bytecount = NULL;
 
     TIFFClose(tif);
 
