@@ -94,7 +94,6 @@ static void* limitRealloc(void* buf, tmsize_t s)
 }
 
 
-
 int main(int argc, char* argv[])
 {
 	TIFF *in, *out;
@@ -195,6 +194,7 @@ newfilename(void)
             defname = 1;
         }
         first = 0;
+        fnum = 0;
     }
 
     if (fnum == MAXFILES) {
