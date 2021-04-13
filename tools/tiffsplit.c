@@ -67,7 +67,7 @@ main(int argc, char* argv[])
             fprintf(stderr, "%s\n\n", TIFFGetVersion());
             fprintf(stderr, "Split a multi-image TIFF into single-image TIFF files\n\n");
             fprintf(stderr, "usage: tiffsplit input.tif [prefix]\n");
-            fprintf(stderr, "MAX Number of files: %d \n\n",MAXFILES);
+            fprintf(stderr, "Modified for increased MAX Number of files: %d \n\n",MAXFILES);
         return (EXIT_FAILURE);
     }
     if (argc > 2) {
