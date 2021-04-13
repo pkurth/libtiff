@@ -39,6 +39,7 @@
 #endif
 
 #include <string.h>
+#include <limits.h>
 
 #ifdef HAVE_ASSERT_H
 # include <assert.h>
@@ -53,6 +54,8 @@
 #ifndef STRIP_SIZE_DEFAULT
 # define STRIP_SIZE_DEFAULT 8192
 #endif
+
+#define TIFF_DIR_MAX UINT_MAX
 
 #define    streq(a,b)      (strcmp(a,b) == 0)
 #define    strneq(a,b,n)   (strncmp(a,b,n) == 0)

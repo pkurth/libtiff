@@ -5042,7 +5042,6 @@ TIFFCheckDirOffset(TIFF* tif, uint64_t diroff)
 	    TIFFErrorExt(tif->tif_clientdata, "TIFFCheckDirOffset",
              "Cannot handle more than TIFF_DIR_MAX TIFF directories");
         printf("TIFF_DIR_MAX=  %d",TIFF_DIR_MAX);
-
 	    return 0;
 	}
 

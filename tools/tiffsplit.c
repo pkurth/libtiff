@@ -81,6 +81,7 @@ static void* limitMalloc(tmsize_t s)
 	return _TIFFmalloc(s);
 }
 
+
 static void* limitRealloc(void* buf, tmsize_t s)
 {
 	if (maxMalloc && ((s > maxMalloc) || (s < 0))) {
