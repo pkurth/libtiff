@@ -95,7 +95,7 @@ main(int argc, char* argv[])
                 _TIFFfree(path);
 
                 // KL : Show File name
-                printf("%.10s\n",path);
+                //printf("%.10s\n",path);
 
                 if (out == NULL)
                         return (EXIT_FAILURE);
@@ -129,6 +129,7 @@ newfilename(void)
             defname = 1;
         }
         first = 0;
+        fnum = 0;
     }
 
     if (fnum == MAXFILES) {
@@ -170,7 +171,7 @@ newfilename(void)
     // KL : Override 3 char naming Scheme and use frame Number
     fnum++;
     sprintf(fname,"%07ld",fnum);
-    printf("%07ld",fnum);
+    printf("%ld \n",fnum);
     //puts(fname);
 
     //fprintf(stdiom,fname);
