@@ -180,7 +180,7 @@ static void
 newfilename(void)
 {
     static int first = 1;
-    static long lastTurn;
+    //static long lastTurn;
     static long fnum;
     static short defname;
     static char *fpnt;
