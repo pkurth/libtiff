@@ -23,7 +23,7 @@
  */
 
 #include "tif_config.h"
-#include "libport.h"
+#include "../port/libport.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -140,39 +140,41 @@ newfilename(void)
         fname[0]++;
         fnum = 0;
     }
-    if (fnum % 676 == 0) {
-        if (fnum != 0) {
-            /*
-                         * advance to next letter every 676 pages
-             * condition for 'z'++ will be covered above
-                         */
-            fpnt[0]++;
-        } else {
-            /*
-                         * set to 'a' if we are on the very first file
-                         */
-            fpnt[0] = 'a';
-        }
-        /*
-                 * set the value of the last turning point
-                 */
-        lastTurn = fnum;
-    }
-    /*
-         * start from 0 every 676 times (provided by lastTurn)
-         * this keeps us within a-z boundaries
-         */
-    fpnt[1] = (char)((fnum - lastTurn) / 26) + 'a';
-    /*
-         * cycle last letter every file, from a-z, then repeat
-         */
-    fpnt[2] = (char)(fnum % 26) + 'a';
 
     // KL : Override 3 char naming Scheme and use frame Number
     fnum++;
-    sprintf(fname,"%07ld",fnum);
-    printf("%ld \n",fnum);
-    //puts(fname);
+    sprintf(fpnt,"%07ld",fnum);
+    printf("%s \n",fpnt);
+
+//    if (fnum % 676 == 0) {
+//        if (fnum != 0) {
+//            /*
+//                         * advance to next letter every 676 pages
+//             * condition for 'z'++ will be covered above
+//                         */
+//            fpnt[0]++;
+//        } else {
+//            /*
+//                         * set to 'a' if we are on the very first file
+//                         */
+//            fpnt[0] = 'a';
+//        }
+//        /*
+//                 * set the value of the last turning point
+//                 */
+//        lastTurn = fnum;
+//    }
+//    /*
+//         * start from 0 every 676 times (provided by lastTurn)
+//         * this keeps us within a-z boundaries
+//         */
+//    fpnt[1] = (char)((fnum - lastTurn) / 26) + 'a';
+    /*
+//         * cycle last letter every file, from a-z, then repeat
+         */
+//    fpnt[2] = (char)(fnum % 26) + 'a';
+
+
 
     //fprintf(stdiom,fname);
 
