@@ -620,9 +620,6 @@ TIFFInitZIP(TIFF* tif, int scheme)
 
 	assert( (scheme == COMPRESSION_DEFLATE)
 		|| (scheme == COMPRESSION_ADOBE_DEFLATE));
-	if (scheme == COMPRESSION_DEFLATE) {
-		TIFFWarningExt(tif->tif_clientdata, module, "Using legacy Deflate codec identifier, COMPRESSION_ADOBE_DEFLATE is more widely supported");
-	}
 #ifdef NDEBUG
 	(void)scheme;
 #endif
