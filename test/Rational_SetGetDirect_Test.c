@@ -35,7 +35,7 @@
  * ATTENTION: 
  *	Because some internal functions are used here, which are normally not included in the tiff-library,
  *	The following functions have to be temporarilly added to "libtiff.def":
- * 	_TIFFFillStriles 	_TIFFMergeFields 	TIFFFlushData1 	_TIFFSetGetFieldSize 	_TIFFClampDoubleToFloat 	_TIFFSeekOK
+ * 	_TIFFGetFields	_TIFFMergeFields 	_TIFFSetGetFieldSize 
  *
  */
 
@@ -341,7 +341,7 @@ main()
 
 	/* We write the main directory as a simple image with --- Rational directly.--- */
 	/* delete file, if exists */
-	fprintf(stderr, "\n-------- Test with ClassicTIFF started  ---- Rational Directly ------\n");
+	fprintf(stderr, "\n-------- Test with ClassicTIFF started  ---- Rational Directly (using TIFFSetFieldRational) ------\n");
 	ret = unlink(filenameClassicTiff3);
 	errorNo = errno;
 	if (ret != 0 && errorNo != ENOENT) {
@@ -1045,7 +1045,7 @@ write_test_tiff(TIFF* tif, const char* filenameRead, int blnAllCustomTags, int b
 		}
 	}
 
-	fprintf (stderr, "-------- Continue Test  ---------- reading ...\n");
+	fprintf (stderr, "-------- Continue Test  ---------- reading (also with TIFFGetFieldRational) ...\n");
 
 /*=========================  READING  =============  READING  ========================================*/
 	/* Ok, now test whether we can read written values in the EXIF directory. */

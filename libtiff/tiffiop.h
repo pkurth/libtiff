@@ -339,7 +339,14 @@ extern int TIFFSetCompressionScheme(TIFF* tif, int scheme);
 extern int TIFFSetDefaultCompressionState(TIFF* tif);
 extern uint32_t _TIFFDefaultStripSize(TIFF* tif, uint32_t s);
 extern void _TIFFDefaultTileSize(TIFF* tif, uint32_t* tw, uint32_t* th);
+/*--: SetGetRATIONAL_directly:_CustomTag:
+*   Because the internal storage size of RATIONAL is now the same size than the size of the tag,
+*   the size can be retrieved by TIFFDataWidth() and the additional function _TIFFDataSize() can be deleted.
+*   ATTENTION: tv_size holds the size of the internal storage size but NOT the size of the passed API data parameter!
+*/
+#ifdef SetGetRATIONAL_replaced_and_obsolete /* SetGetRATIONAL_directly: _TIFFDataSize() replaced by TIFFDataWidth() */
 extern int _TIFFDataSize(TIFFDataType type);
+#endif
 
 /*--: Rational2Double: Return size of TIFFSetGetFieldType in bytes. */
 extern int _TIFFSetGetFieldSize(TIFFSetGetFieldType setgettype);

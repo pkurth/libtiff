@@ -195,27 +195,17 @@ add_executable(custom_dir ../placeholder.h)
 target_sources(custom_dir PRIVATE custom_dir.c)
 target_link_libraries(custom_dir PRIVATE tiff port)
 
-if(NOT BUILD_SHARED_LIBS)
 add_executable(rational_precision2double ../placeholder.h)
 target_sources(rational_precision2double PRIVATE rational_precision2double.c)
 target_link_libraries(rational_precision2double PRIVATE tiff port)
-add_test(NAME "rational_precision2double"
-         COMMAND "rational_precision2double")
-endif()
 
-if(NOT BUILD_SHARED_LIBS)
 add_executable(custom_dir_EXIF_231 ../placeholder.h)
 target_sources(custom_dir_EXIF_231 PRIVATE custom_dir_EXIF_231.c)
 target_link_libraries(custom_dir_EXIF_231 PRIVATE tiff port)
-add_test(NAME "custom_dir_EXIF_231"
-         COMMAND "custom_dir_EXIF_231")
-endif()
 
 add_executable(Rational_SetGetDirect_Test)
 target_sources(Rational_SetGetDirect_Test PRIVATE Rational_SetGetDirect_Test.c)
 target_link_libraries(Rational_SetGetDirect_Test PRIVATE tiff port)
-add_test(NAME "Rational_SetGetDirect_Test"
-         COMMAND "Rational_SetGetDirect_Test")
 
 if(NOT BUILD_SHARED_LIBS)
   add_executable(test_directory ../placeholder.h)
@@ -385,6 +375,13 @@ macro(add_reader_test commandname commandargs image)
   string(REGEX REPLACE "\\.tiff\$" "" name "${name}")
   tiff_test_reader("${testname}" "${command}" "${infile}")
 endmacro()
+
+# EXE-Files
+tiff_test_reader("custom_dir_EXIF_231" "" "")
+tiff_test_reader("rational_precision2double" "" "")
+tiff_test_reader("Rational_SetGetDirect_Test" "" "")
+
+
 
 # BMP
 add_convert_test(bmp2tiff palette "" "images/palette-1c-8b.bmp" TRUE)
