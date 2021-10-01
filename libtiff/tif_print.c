@@ -274,8 +274,15 @@ TIFFPrintDirectory(TIFF* tif, FILE* fd, long flags)
 		fprintf(fd, "\n");
 	}
 	if (TIFFFieldSet(tif,FIELD_RESOLUTION)) {
-		fprintf(fd, "  Resolution: %g, %g",
-		    td->td_xresolution, td->td_yresolution);
+		/* SetGetRATIONAL_directly: */
+		double dx=0, dy=0;
+		if (td->td_xresolution.uDenom != 0) {
+			dx = (double)td->td_xresolution.uNum / (double)td->td_xresolution.uDenom;
+		}
+		if (td->td_yresolution.uDenom != 0) {
+			dy = (double)td->td_yresolution.uNum / (double)td->td_yresolution.uDenom;
+		}
+		fprintf(fd, "  Resolution: %g, %g", dx, dy);
 		if (TIFFFieldSet(tif,FIELD_RESOLUTIONUNIT)) {
 			switch (td->td_resolutionunit) {
 			case RESUNIT_NONE:

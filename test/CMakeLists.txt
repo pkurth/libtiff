@@ -211,6 +211,10 @@ add_test(NAME "custom_dir_EXIF_231"
          COMMAND "custom_dir_EXIF_231")
 endif()
 
+add_executable(Rational_SetGetDirect_Test)
+target_sources(Rational_SetGetDirect_Test PRIVATE Rational_SetGetDirect_Test.c)
+target_link_libraries(Rational_SetGetDirect_Test PRIVATE tiff port)
+
 if(NOT BUILD_SHARED_LIBS)
   add_executable(test_directory ../placeholder.h)
   target_sources(test_directory PRIVATE test_directory.c)
@@ -379,6 +383,9 @@ macro(add_reader_test commandname commandargs image)
   string(REGEX REPLACE "\\.tiff\$" "" name "${name}")
   tiff_test_reader("${testname}" "${command}" "${infile}")
 endmacro()
+
+# EXE Test Files
+tiff_test_reader("Rational_SetGetDirect_Test" "" "")
 
 # BMP
 add_convert_test(bmp2tiff palette "" "images/palette-1c-8b.bmp" TRUE)
