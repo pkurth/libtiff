@@ -66,8 +66,6 @@
 #include "tifftest.h"
 
 
-#include "tif_dirwrite.c"
-
 
 int write_test_tiff(TIFF *tif, const char *filenameRead, int blnAllCustomTags);
 

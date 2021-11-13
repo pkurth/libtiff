@@ -258,6 +258,23 @@ typedef struct {
 #include <stdio.h>
 #include <stdarg.h>
 
+/* SetGetRATIONAL_directly:
+ *    Here, the defines for native rational interface development are combined.
+ *    After development, they can be located on a more appropriate place in include files,
+ *    depending the final outline of the upgrade.
+ *
+ */
+typedef struct {
+	uint32_t uNum;
+	uint32_t uDenom;
+} TIFFRational_t;
+
+typedef struct {
+	int32_t sNum;
+	int32_t sDenom;
+} TIFFSRational_t;
+
+
 /* share internal LogLuv conversion routines? */
 #ifndef LOGLUV_PUBLIC
 #define LOGLUV_PUBLIC 1
@@ -337,6 +354,9 @@ typedef struct {
     TIFFVSetMethod vsetfield; /* tag set routine */
     TIFFVGetMethod vgetfield; /* tag get routine */
     TIFFPrintMethod printdir; /* directory print routine */
+	/* SetGetRATIONAL_directly: */
+	TIFFVSetMethod vsetfieldrational; /* tag set routine for rationals directly */
+	TIFFVGetMethod vgetfieldrational; /* tag get routine for rationals directly */
 } TIFFTagMethods;
 
 extern  TIFFTagMethods *TIFFAccessTagMethods(TIFF *);
@@ -538,6 +558,24 @@ extern void TIFFXYZToRGB(TIFFCIELabToRGB *, float, float, float,
 extern int TIFFYCbCrToRGBInit(TIFFYCbCrToRGB*, float*, float*);
 extern void TIFFYCbCrtoRGB(TIFFYCbCrToRGB *, uint32_t, int32_t, int32_t,
                            uint32_t *, uint32_t *, uint32_t *);
+
+/* -- SetGetRATIONAL_directly: --
+ *  Additional interface to directly write / read rational value pairs.
+ *  This gives the user the possibility to increase / determine the accuracy of rational values.
+ *
+ * Till now DoubleToRational() is defined in tif_dirwrite.c locally, but need to be used also in tif_dirread.c and others.
+ * Also the user will need DoubleToRational() to calculate numerator and denominator for rationals.
+ * Therefore, also DoubleToRational() has to be added to tiflib.def.
+ * Furthermore, this definitions have to be put after include of stdarg.h.
+ * Finally, the defines need to be inside of the extern C declaration to use them in C++ projects.
+*/
+extern void DoubleToRational(double value, uint32_t* num, uint32_t* denom);
+extern void DoubleToSrational(double value, int32_t* num, int32_t* denom);
+extern int TIFFSetFieldRational(TIFF*, uint32_t, ...);
+extern int TIFFVSetFieldRational(TIFF* tif, uint32_t tag, va_list ap);
+extern int TIFFGetFieldRational(TIFF*, uint32_t, ...);
+extern int TIFFVGetFieldRational(TIFF* tif, uint32_t tag, va_list ap);
+
 
 /****************************************************************************
  *               O B S O L E T E D    I N T E R F A C E S

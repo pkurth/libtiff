@@ -38,6 +38,7 @@
 #include "tiffiop.h"
 #include <float.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #define FAILED_FII    ((uint32_t) -1)
 
@@ -67,6 +68,9 @@ static enum TIFFReadDirEntryErr TIFFReadDirEntryLong8(TIFF* tif, TIFFDirEntry* d
 static enum TIFFReadDirEntryErr TIFFReadDirEntryFloat(TIFF* tif, TIFFDirEntry* direntry, float* value);
 static enum TIFFReadDirEntryErr TIFFReadDirEntryDouble(TIFF* tif, TIFFDirEntry* direntry, double* value);
 static enum TIFFReadDirEntryErr TIFFReadDirEntryIfd8(TIFF* tif, TIFFDirEntry* direntry, uint64_t* value);
+/*--: SetGetRATIONAL_directly:_CustomTag: Read rational (and signed rationals) directly --*/
+static enum TIFFReadDirEntryErr TIFFReadDirEntryRationalDirect(TIFF* tif, TIFFDirEntry* direntry, TIFFRational_t* value);
+static enum TIFFReadDirEntryErr TIFFReadDirEntrySrationalDirect(TIFF* tif, TIFFDirEntry* direntry, TIFFSRational_t* value);
 
 static enum TIFFReadDirEntryErr TIFFReadDirEntryArray(TIFF* tif, TIFFDirEntry* direntry, uint32_t* count, uint32_t desttypesize, void** value);
 static enum TIFFReadDirEntryErr TIFFReadDirEntryByteArray(TIFF* tif, TIFFDirEntry* direntry, uint8_t** value);
@@ -80,6 +84,9 @@ static enum TIFFReadDirEntryErr TIFFReadDirEntrySlong8Array(TIFF* tif, TIFFDirEn
 static enum TIFFReadDirEntryErr TIFFReadDirEntryFloatArray(TIFF* tif, TIFFDirEntry* direntry, float** value);
 static enum TIFFReadDirEntryErr TIFFReadDirEntryDoubleArray(TIFF* tif, TIFFDirEntry* direntry, double** value);
 static enum TIFFReadDirEntryErr TIFFReadDirEntryIfd8Array(TIFF* tif, TIFFDirEntry* direntry, uint64_t** value);
+/*--: SetGetRATIONAL_directly:_CustomTag: Read rational (and signed rationals) directly --*/
+static enum TIFFReadDirEntryErr TIFFReadDirEntryRationalDirectArray(TIFF* tif, TIFFDirEntry* direntry, TIFFRational_t** value);
+static enum TIFFReadDirEntryErr TIFFReadDirEntrySrationalDirectArray(TIFF* tif, TIFFDirEntry* direntry, TIFFSRational_t** value);
 
 static enum TIFFReadDirEntryErr TIFFReadDirEntryPersampleShort(TIFF* tif, TIFFDirEntry* direntry, uint16_t* value);
 #if 0
@@ -98,6 +105,8 @@ static enum TIFFReadDirEntryErr TIFFReadDirEntryCheckedRational(TIFF* tif, TIFFD
 static enum TIFFReadDirEntryErr TIFFReadDirEntryCheckedSrational(TIFF* tif, TIFFDirEntry* direntry, double* value);
 static void TIFFReadDirEntryCheckedFloat(TIFF* tif, TIFFDirEntry* direntry, float* value);
 static enum TIFFReadDirEntryErr TIFFReadDirEntryCheckedDouble(TIFF* tif, TIFFDirEntry* direntry, double* value);
+/*--: SetGetRATIONAL_directly:_CustomTag: Read rational (and signed rationals) directly --*/
+static enum TIFFReadDirEntryErr TIFFReadDirEntryCheckedRationalDirect(TIFF* tif, TIFFDirEntry* direntry, TIFFRational_t* value);
 
 static enum TIFFReadDirEntryErr TIFFReadDirEntryCheckRangeByteSbyte(int8_t value);
 static enum TIFFReadDirEntryErr TIFFReadDirEntryCheckRangeByteShort(uint16_t value);
@@ -765,6 +774,265 @@ static enum TIFFReadDirEntryErr TIFFReadDirEntryIfd8(TIFF* tif, TIFFDirEntry* di
 			return(TIFFReadDirEntryErrType);
 	}
 }
+
+
+static enum TIFFReadDirEntryErr TIFFReadDirEntryRationalDirect(TIFF* tif, TIFFDirEntry* direntry, TIFFRational_t* value)
+{	/*--: SetGetRATIONAL_directly:_CustomTag: Read rational directly and check for unsigned integer range --*/
+	enum TIFFReadDirEntryErr err;
+	if (direntry->tdir_count != 1)
+		return(TIFFReadDirEntryErrCount);
+	switch (direntry->tdir_type) {
+		case TIFF_BYTE:
+		{
+			uint8_t m;
+			TIFFReadDirEntryCheckedByte(tif, direntry, &m);
+			value->uNum = (uint32_t)m; value->uDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_SBYTE:
+		{
+			int8_t m;
+			TIFFReadDirEntryCheckedSbyte(tif, direntry, &m);
+			err = TIFFReadDirEntryCheckRangeByteSbyte(m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			value->uNum = (uint32_t)m; value->uDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_SHORT:
+		{
+			uint16_t m;
+			TIFFReadDirEntryCheckedShort(tif, direntry, &m);
+			value->uNum = (uint32_t)m; value->uDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_SSHORT:
+		{
+			int16_t m;
+			TIFFReadDirEntryCheckedSshort(tif, direntry, &m);
+			err = TIFFReadDirEntryCheckRangeShortSshort(m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			value->uNum = (uint32_t)m; value->uDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_LONG:
+		{
+			uint32_t m;
+			TIFFReadDirEntryCheckedLong(tif, direntry, &m);
+			value->uNum = (uint32_t)m; value->uDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_SLONG:
+		{
+			int32_t m;
+			TIFFReadDirEntryCheckedSlong(tif, direntry, &m);
+			err = TIFFReadDirEntryCheckRangeLongSlong(m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			value->uNum = (uint32_t)m; value->uDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_LONG8:
+		{
+			uint64_t m;
+			err = TIFFReadDirEntryCheckedLong8(tif, direntry, &m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			err = TIFFReadDirEntryCheckRangeLongLong8(m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			value->uNum = (uint32_t)m; value->uDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_SLONG8:
+		{
+			int64_t m;
+			err = TIFFReadDirEntryCheckedSlong8(tif, direntry, &m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			err = TIFFReadDirEntryCheckRangeLongSlong8(m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			value->uNum = (uint32_t)m; value->uDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_RATIONAL:
+		{
+			TIFFRational_t m;
+			err = TIFFReadDirEntryCheckedRationalDirect(tif, direntry, &m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			value->uNum = m.uNum; value->uDenom = m.uDenom;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_SRATIONAL:
+		{
+			TIFFSRational_t m;
+			err = TIFFReadDirEntryCheckedRationalDirect(tif, direntry, (TIFFRational_t *)&m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			/* Check for Rational range */
+			if (m.sNum < 0 || m.sDenom < 0) {
+				return(TIFFReadDirEntryErrRange);
+			}
+			value->uNum = (uint32_t)m.sNum; value->uDenom = (uint32_t)m.sDenom;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_FLOAT:
+		{
+			float m;
+			TIFFReadDirEntryCheckedFloat(tif, direntry, &m);
+			/* Check for Rational range */
+			if (m > UINT_MAX || m < 0.0f)
+				return(TIFFReadDirEntryErrRange);
+			DoubleToRational(m, &value->uNum, &value->uDenom);
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_DOUBLE:
+		{
+			double m;
+			err = TIFFReadDirEntryCheckedDouble(tif, direntry, &m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			/* Check for Rational range */
+			if (m > UINT_MAX || m < 0.0f)
+				return(TIFFReadDirEntryErrRange);
+			DoubleToRational(m, &value->uNum, &value->uDenom);
+			return(TIFFReadDirEntryErrOk);
+		}
+		default:
+			return(TIFFReadDirEntryErrType);
+	}
+} /*-- TIFFReadDirEntryRationalDirect() --*/
+
+
+static enum TIFFReadDirEntryErr TIFFReadDirEntrySrationalDirect(TIFF* tif, TIFFDirEntry* direntry, TIFFSRational_t* value)
+{	/*--: SetGetRATIONAL_directly:_CustomTag: Read signed rationals directly and check for signed integer range --*/
+	enum TIFFReadDirEntryErr err;
+	if (direntry->tdir_count != 1)
+		return(TIFFReadDirEntryErrCount);
+	switch (direntry->tdir_type) {
+		case TIFF_BYTE:
+		{
+			uint8_t m;
+			TIFFReadDirEntryCheckedByte(tif, direntry, &m);
+			value->sNum = (int32_t)m; value->sDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_SBYTE:
+		{
+			int8_t m;
+			TIFFReadDirEntryCheckedSbyte(tif, direntry, &m);
+			value->sNum = (int32_t)m; value->sDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_SHORT:
+		{
+			uint16_t m;
+			TIFFReadDirEntryCheckedShort(tif, direntry, &m);
+			value->sNum = (int32_t)m; value->sDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_SSHORT:
+		{
+			int16_t m;
+			TIFFReadDirEntryCheckedSshort(tif, direntry, &m);
+			value->sNum = (int32_t)m; value->sDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_LONG:
+		{
+			uint32_t m;
+			TIFFReadDirEntryCheckedLong(tif, direntry, &m);
+			err = TIFFReadDirEntryCheckRangeSlongLong(m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			value->sNum = (int32_t)m; value->sDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_SLONG:
+		{
+			int32_t m;
+			TIFFReadDirEntryCheckedSlong(tif, direntry, &m);
+			value->sNum = (int32_t)m; value->sDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_LONG8:
+		{
+			uint64_t m;
+			err = TIFFReadDirEntryCheckedLong8(tif, direntry, &m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			err = TIFFReadDirEntryCheckRangeSlongLong8(m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			value->sNum = (int32_t)m; value->sDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_SLONG8:
+		{
+			int64_t m;
+			err = TIFFReadDirEntryCheckedSlong8(tif, direntry, &m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			err = TIFFReadDirEntryCheckRangeSlongSlong8(m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			value->sNum = (int32_t)m; value->sDenom = 1;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_RATIONAL:
+		{
+			TIFFRational_t m;
+			err = TIFFReadDirEntryCheckedRationalDirect(tif, direntry, &m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			/* Check for Srational range */
+			err = TIFFReadDirEntryCheckRangeSlongLong(m.uNum);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			err = TIFFReadDirEntryCheckRangeSlongLong(m.uDenom);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			value->sNum = (int32_t)m.uNum; value->sDenom = (int32_t)m.uDenom;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_SRATIONAL:
+		{
+			TIFFSRational_t m;
+			err = TIFFReadDirEntryCheckedRationalDirect(tif, direntry, (TIFFRational_t*)&m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			value->sNum = m.sNum; value->sDenom = m.sDenom;
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_FLOAT:
+		{
+			float m;
+			TIFFReadDirEntryCheckedFloat(tif, direntry, &m);
+			/* Check for Srational range */
+			if (m > INT_MAX || m < INT_MIN)
+				return(TIFFReadDirEntryErrRange);
+			DoubleToSrational(m, &value->sNum, &value->sDenom);
+			return(TIFFReadDirEntryErrOk);
+		}
+		case TIFF_DOUBLE:
+		{
+			double m;
+			err = TIFFReadDirEntryCheckedDouble(tif, direntry, &m);
+			if (err != TIFFReadDirEntryErrOk)
+				return(err);
+			/* Check for Srational range */
+			if (m > INT_MAX || m < INT_MIN)
+				return(TIFFReadDirEntryErrRange);
+			DoubleToSrational(m, &value->sNum, &value->sDenom);
+			return(TIFFReadDirEntryErrOk);
+		}
+		default:
+			return(TIFFReadDirEntryErrType);
+	}
+} /*-- TIFFReadDirEntrySrationalDirect() --*/
 
 
 #define INITIAL_THRESHOLD (1024 * 1024)
@@ -2831,6 +3099,450 @@ static enum TIFFReadDirEntryErr TIFFReadDirEntryIfd8Array(TIFF* tif, TIFFDirEntr
 	return(TIFFReadDirEntryErrOk);
 }
 
+
+static enum TIFFReadDirEntryErr TIFFReadDirEntryRationalDirectArray(TIFF* tif, TIFFDirEntry* direntry, TIFFRational_t** value)
+{	/*--: SetGetRATIONAL_directly:_CustomTag: Read rational array directly and check for unsigned integer range (like for TIFFReadDirEntryLongArray()) --*/
+	enum TIFFReadDirEntryErr err;
+	uint32_t count;
+	void* origdata;
+	TIFFRational_t* data;
+	uint32_t n;
+	TIFFRational_t* mb;
+	switch (direntry->tdir_type) {
+		case TIFF_BYTE:
+		case TIFF_SBYTE:
+		case TIFF_SHORT:
+		case TIFF_SSHORT:
+		case TIFF_LONG:
+		case TIFF_SLONG:
+		case TIFF_LONG8:
+		case TIFF_SLONG8:
+		case TIFF_RATIONAL:
+		case TIFF_SRATIONAL:
+		case TIFF_FLOAT:
+		case TIFF_DOUBLE:
+			break;
+		default:
+			return(TIFFReadDirEntryErrType);
+	}
+	/*-- read an array from file (of any type) --*/
+	err = TIFFReadDirEntryArray(tif, direntry, &count, 8, &origdata);
+	if ((err != TIFFReadDirEntryErrOk) || (origdata == 0)) {
+		*value = 0;
+		return(err);
+	}
+	/*-- If array from file is a rational array it can be directly returend. --*/
+	switch (direntry->tdir_type) {
+		case TIFF_RATIONAL:
+			if (tif->tif_flags & TIFF_SWAB)
+				TIFFSwabArrayOfLong((uint32_t*)origdata, (tmsize_t)2 * count);
+			*value = origdata;
+			return(TIFFReadDirEntryErrOk);
+		case TIFF_SRATIONAL:
+			if (tif->tif_flags & TIFF_SWAB)
+				TIFFSwabArrayOfLong((uint32_t*)origdata, (tmsize_t)2 * count);
+			/* Check for Rational range */
+			TIFFSRational_t* ma;
+			ma = (TIFFSRational_t*)origdata;
+			for (n = 0; n < count; n++, ma++) {
+				if (ma->sNum < 0 || ma->sDenom < 0) {
+					return(TIFFReadDirEntryErrRange);
+				}
+			}
+			*value = origdata;
+			return(TIFFReadDirEntryErrOk);
+	}
+	/*-- Else, convert array from file into rational array and check for overflow in conversion. --*/
+	data = (TIFFRational_t*)_TIFFmalloc(count * sizeof(TIFFRational_t));
+	if (data == 0) {
+		_TIFFfree(origdata);
+		return(TIFFReadDirEntryErrAlloc);
+	}
+	switch (direntry->tdir_type) {
+		case TIFF_BYTE:
+		{
+			uint8_t* ma;
+			ma = (uint8_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				mb->uNum = (uint32_t)*ma;
+				mb->uDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_SBYTE:
+		{
+			int8_t* ma;
+			ma = (int8_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				err = TIFFReadDirEntryCheckRangeLongSbyte(*ma);
+				if (err != TIFFReadDirEntryErrOk)
+					return(err);
+				mb->uNum = (uint32_t)*ma;
+				mb->uDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_SHORT:
+		{
+			uint16_t * ma;
+			ma = (uint16_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				if (tif->tif_flags & TIFF_SWAB)
+					TIFFSwabShort(ma);
+				mb->uNum = (uint32_t)*ma;
+				mb->uDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_SSHORT:
+		{
+			int16_t* ma;
+			ma = (int16_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				if (tif->tif_flags & TIFF_SWAB)
+					TIFFSwabShort((uint16_t*)ma);
+				err = TIFFReadDirEntryCheckRangeLongSshort(*ma);
+				if (err != TIFFReadDirEntryErrOk)
+					return(err);
+				mb->uNum = (uint32_t)*ma;
+				mb->uDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_LONG:
+		{
+			uint32_t* ma;
+			ma = (uint32_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				if (tif->tif_flags & TIFF_SWAB)
+					TIFFSwabLong(ma);
+				mb->uNum = (uint32_t)*ma;
+				mb->uDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_SLONG:
+		{
+			int32_t* ma;
+			ma = (int32_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				if (tif->tif_flags & TIFF_SWAB)
+					TIFFSwabLong((uint32_t*)ma);
+				err = TIFFReadDirEntryCheckRangeLongSlong(*ma);
+				if (err != TIFFReadDirEntryErrOk)
+					return(err);
+				mb->uNum = (uint32_t)*ma;
+				mb->uDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_LONG8:
+		{
+			uint64_t* ma;
+			ma = (uint64_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				if (tif->tif_flags & TIFF_SWAB)
+					TIFFSwabLong8(ma);
+				err = TIFFReadDirEntryCheckRangeLongLong8(*ma);
+				if (err != TIFFReadDirEntryErrOk)
+					return(err);
+				mb->uNum = (uint32_t)*ma;
+				mb->uDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_SLONG8:
+		{
+			int64_t* ma;
+			ma = (int64_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				if (tif->tif_flags & TIFF_SWAB)
+					TIFFSwabLong8((uint64_t*)ma);
+				err = TIFFReadDirEntryCheckRangeLongSlong8(*ma);
+				if (err != TIFFReadDirEntryErrOk)
+					return(err);
+				mb->uNum = (uint32_t)*ma;
+				mb->uDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_FLOAT:
+		{
+			float* ma;
+			if (tif->tif_flags & TIFF_SWAB)
+				TIFFSwabArrayOfFloat((float*)origdata, count);
+			TIFFCvtIEEEFloatToNative(tif, count, (float*)origdata);
+			ma = (float*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				double val = *ma++;
+				if ((val < 0) || (val > (double) UINT32_MAX))
+					return(TIFFReadDirEntryErrRange);
+				DoubleToRational(val, &mb->uNum, &mb->uDenom);
+				mb++;
+			} 
+		}
+		break;
+		case TIFF_DOUBLE:
+		{
+			double* ma;
+			if (tif->tif_flags & TIFF_SWAB)
+				TIFFSwabArrayOfDouble((double*)origdata, count);
+			TIFFCvtIEEEDoubleToNative(tif, count, (double*)origdata);
+			ma = (double*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				double val = *ma++;
+				if ((val < 0) || (val > (double) UINT32_MAX))
+					return(TIFFReadDirEntryErrRange);
+				DoubleToRational(val, &mb->uNum, &mb->uDenom);
+				mb++;
+			}
+		}
+		break;
+	}
+	_TIFFfree(origdata);
+	*value = data;
+	return(TIFFReadDirEntryErrOk);
+} /*-- TIFFReadDirEntryRationalDirectArray() --*/
+
+static enum TIFFReadDirEntryErr TIFFReadDirEntrySrationalDirectArray(TIFF* tif, TIFFDirEntry* direntry, TIFFSRational_t** value)
+{	/*--: SetGetRATIONAL_directly:_CustomTag: Read signed array directly and check for signed integer range (like for TIFFReadDirEntrySlongArray()) --*/
+	enum TIFFReadDirEntryErr err;
+	uint32_t count;
+	void* origdata;
+	TIFFSRational_t* data;
+	uint32_t n;
+	TIFFSRational_t* mb;
+	switch (direntry->tdir_type) {
+		case TIFF_BYTE:
+		case TIFF_SBYTE:
+		case TIFF_SHORT:
+		case TIFF_SSHORT:
+		case TIFF_LONG:
+		case TIFF_SLONG:
+		case TIFF_LONG8:
+		case TIFF_SLONG8:
+		case TIFF_RATIONAL:
+		case TIFF_SRATIONAL:
+		case TIFF_FLOAT:
+		case TIFF_DOUBLE:
+			break;
+		default:
+			return(TIFFReadDirEntryErrType);
+	}
+	/*-- read an array from file (of any type) --*/
+	err = TIFFReadDirEntryArray(tif, direntry, &count, 8, &origdata);
+	if ((err != TIFFReadDirEntryErrOk) || (origdata == 0)) {
+		*value = 0;
+		return(err);
+	}
+	/*-- If array from file is a rational array it can be directly returend. --*/
+	switch (direntry->tdir_type) {
+		case TIFF_RATIONAL:
+			if (tif->tif_flags & TIFF_SWAB)
+				TIFFSwabArrayOfLong((uint32_t*)origdata, (tmsize_t)2 * count);
+			/* Check for Signed Rational range */
+			TIFFRational_t* ma;
+			ma = (TIFFRational_t*)origdata;
+			for (n = 0; n < count; n++, ma++) {
+				err = TIFFReadDirEntryCheckRangeSlongLong(ma->uNum);
+				if (err != TIFFReadDirEntryErrOk)
+					return(err);
+				err = TIFFReadDirEntryCheckRangeSlongLong(ma->uDenom);
+				if (err != TIFFReadDirEntryErrOk)
+					return(err);
+			}
+			*value = origdata;
+			return(TIFFReadDirEntryErrOk);
+		case TIFF_SRATIONAL:
+			if (tif->tif_flags & TIFF_SWAB)
+				TIFFSwabArrayOfLong((uint32_t*)origdata, (tmsize_t)2 * count);
+			*value = origdata;
+			return(TIFFReadDirEntryErrOk);
+	}
+	/*-- Else, convert array from file into signed rational array and check for overflow in conversion. --*/
+	data = (TIFFSRational_t*)_TIFFmalloc(count * sizeof(TIFFSRational_t));
+	if (data == 0) {
+		_TIFFfree(origdata);
+		return(TIFFReadDirEntryErrAlloc);
+	}
+	switch (direntry->tdir_type) {
+		case TIFF_BYTE:
+		{
+			uint8_t* ma;
+			ma = (uint8_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				mb->sNum = (int32_t)*ma;
+				mb->sDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_SBYTE:
+		{
+			int8_t* ma;
+			ma = (int8_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				mb->sNum = (int32_t)*ma;
+				mb->sDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_SHORT:
+		{
+			uint16_t* ma;
+			ma = (uint16_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				if (tif->tif_flags & TIFF_SWAB)
+					TIFFSwabShort(ma);
+				mb->sNum = (int32_t)*ma;
+				mb->sDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_SSHORT:
+		{
+			int16_t* ma;
+			ma = (int16_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				if (tif->tif_flags & TIFF_SWAB)
+					TIFFSwabShort((uint16_t*)ma);
+				mb->sNum = (int32_t)*ma;
+				mb->sDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_LONG:
+		{
+			uint32_t* ma;
+			ma = (uint32_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				if (tif->tif_flags & TIFF_SWAB)
+					TIFFSwabLong(ma);
+				err = TIFFReadDirEntryCheckRangeSlongLong(*ma);
+				if (err != TIFFReadDirEntryErrOk)
+					return(err);
+				mb->sNum = (int32_t)*ma;
+				mb->sDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_SLONG:
+		{
+			int32_t* ma;
+			ma = (int32_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				if (tif->tif_flags & TIFF_SWAB)
+					TIFFSwabLong((uint32_t*)ma);
+				mb->sNum = (int32_t)*ma;
+				mb->sDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_LONG8:
+		{
+			uint64_t* ma;
+			ma = (uint64_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				if (tif->tif_flags & TIFF_SWAB)
+					TIFFSwabLong8(ma);
+				err = TIFFReadDirEntryCheckRangeSlongLong8(*ma);
+				if (err != TIFFReadDirEntryErrOk)
+					return(err);
+				mb->sNum = (int32_t)*ma;
+				mb->sDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_SLONG8:
+		{
+			int64_t* ma;
+			ma = (int64_t*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				if (tif->tif_flags & TIFF_SWAB)
+					TIFFSwabLong8((uint64_t*)ma);
+				err = TIFFReadDirEntryCheckRangeSlongSlong8(*ma);
+				if (err != TIFFReadDirEntryErrOk)
+					return(err);
+				mb->sNum = (int32_t)*ma;
+				mb->sDenom = 1;
+				ma++; mb++;
+			}
+		}
+		break;
+		case TIFF_FLOAT:
+		{
+			float* ma;
+			if (tif->tif_flags & TIFF_SWAB)
+				TIFFSwabArrayOfFloat((float*)origdata, count);
+			TIFFCvtIEEEFloatToNative(tif, count, (float*)origdata);
+			ma = (float*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				/* Attention: float cannot hold INT_MAX propperly; INT_MAX is uprounded to (INT_MAX+1)*/
+				double val = (double)*ma++;
+				if (val > (double)INT_MAX || val < (double)INT_MIN)
+					return(TIFFReadDirEntryErrRange);
+				DoubleToSrational(val, &mb->sNum, &mb->sDenom);
+				mb++;
+			}
+		}
+		break;
+		case TIFF_DOUBLE:
+		{
+			double* ma;
+			if (tif->tif_flags & TIFF_SWAB)
+				TIFFSwabArrayOfDouble((double*)origdata, count);
+			TIFFCvtIEEEDoubleToNative(tif, count, (double*)origdata);
+			ma = (double*)origdata;
+			mb = data;
+			for (n = 0; n < count; n++) {
+				double val = *ma++;
+				if (val > (double)INT_MAX || val < (double)INT_MIN)
+					return(TIFFReadDirEntryErrRange);
+				DoubleToSrational(val, &mb->sNum, &mb->sDenom);
+				mb++;
+			}
+		}
+		break;
+	}
+	_TIFFfree(origdata);
+	*value = data;
+	return(TIFFReadDirEntryErrOk);
+} /*-- TIFFReadDirEntrySrationalDirectArray() --*/
+
+
 static enum TIFFReadDirEntryErr TIFFReadDirEntryPersampleShort(TIFF* tif, TIFFDirEntry* direntry, uint16_t* value)
 {
 	enum TIFFReadDirEntryErr err;
@@ -3029,6 +3741,43 @@ static enum TIFFReadDirEntryErr TIFFReadDirEntryCheckedSrational(TIFF* tif, TIFF
 		*value= (double)((int32_t)m.i[0]) / (double)m.i[1];
 	return(TIFFReadDirEntryErrOk);
 }
+
+static enum TIFFReadDirEntryErr TIFFReadDirEntryCheckedRationalDirect(TIFF* tif, TIFFDirEntry* direntry, TIFFRational_t* value)
+{	/*--: SetGetRATIONAL_directly:_CustomTag: Read rational (and signed rationals) directly --*/
+	UInt64Aligned_t m;
+
+	assert(sizeof(double) == 8);
+	assert(sizeof(uint64_t) == 8);
+	assert(sizeof(uint32_t) == 4);
+
+	if (direntry->tdir_count != 1)
+		return(TIFFReadDirEntryErrCount);
+
+	if (direntry->tdir_type != TIFF_RATIONAL && direntry->tdir_type != TIFF_SRATIONAL)
+		return(TIFFReadDirEntryErrType);
+
+	if (!(tif->tif_flags & TIFF_BIGTIFF))
+	{
+		enum TIFFReadDirEntryErr err;
+		uint32_t offset = direntry->tdir_offset.toff_long;
+		if (tif->tif_flags & TIFF_SWAB)
+			TIFFSwabLong(&offset);
+		err = TIFFReadDirEntryData(tif, offset, 8, m.i);
+		if (err != TIFFReadDirEntryErrOk)
+			return(err);
+	}
+	else {
+		m.l = direntry->tdir_offset.toff_long8;
+	}
+
+	if (tif->tif_flags & TIFF_SWAB)
+		TIFFSwabArrayOfLong(m.i, 2);
+
+	value->uNum = m.i[0];
+	value->uDenom = m.i[1];
+	return(TIFFReadDirEntryErrOk);
+} /*-- TIFFReadDirEntryCheckedRationalDirect() --*/
+
 
 static void TIFFReadDirEntryCheckedFloat(TIFF* tif, TIFFDirEntry* direntry, float* value)
 {
@@ -5147,29 +5896,75 @@ TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp, int recover)
 			break;
 		case TIFF_SETGET_FLOAT:
 			{
-				float data;
+				float          data;
+				TIFFRational_t rData;
 				assert(fip->field_readcount==1);
 				assert(fip->field_passcount==0);
-				err=TIFFReadDirEntryFloat(tif,dp,&data);
-				if (err==TIFFReadDirEntryErrOk)
-				{
-					if (!TIFFSetField(tif,dp->tdir_tag,data))
-						return(0);
+				/*--: SetGetRATIONAL_directly:_CustomTag: Rationals have now also rationals as internal storage.
+						Distinguish between signed and unsigned because of input checking for rational range in TIFFReadDirEntryXXX().  
+						However, in TIFFSetFieldRational() no signed / unsigned distinguishing is necessary.
+				*/
+				if (fip->field_type == TIFF_RATIONAL) {
+					err = TIFFReadDirEntryRationalDirect(tif, dp, &rData);
+					if (err == TIFFReadDirEntryErrOk)
+					{
+						/* Distiguish between unsigned / signed rationals not necessary here.*/
+						if (!TIFFSetFieldRational(tif, dp->tdir_tag, rData.uNum, rData.uDenom))
+							return(0);
+					}
+				}
+				else if (fip->field_type == TIFF_SRATIONAL) {
+					err = TIFFReadDirEntrySrationalDirect(tif, dp, (TIFFSRational_t *)&rData);
+					if (err == TIFFReadDirEntryErrOk) 					{
+						if (!TIFFSetFieldRational(tif, dp->tdir_tag, rData.uNum, rData.uDenom))
+							return(0);
+					}
+				} 				
+				else {
+					/* normal libtiff code */
+					err = TIFFReadDirEntryFloat(tif, dp, &data);
+					if (err == TIFFReadDirEntryErrOk)
+					{
+						if (!TIFFSetField(tif, dp->tdir_tag, data))
+							return(0);
+					}
 				}
 			}
 			break;
 		case TIFF_SETGET_DOUBLE:
 			{
 				double data;
+				TIFFRational_t rData;
 				assert(fip->field_readcount==1);
 				assert(fip->field_passcount==0);
-				err=TIFFReadDirEntryDouble(tif,dp,&data);
-				if (err==TIFFReadDirEntryErrOk)
-				{
-					if (!TIFFSetField(tif,dp->tdir_tag,data))
-						return(0);
+				/*--: SetGetRATIONAL_directly:_CustomTag: Rationals have now also rationals as internal storage.
+						Distinguish between signed and unsigned because of input checking for rational range in TIFFReadDirEntryXXX().
+						However, in TIFFSetFieldRational() no signed / unsigned distinguishing is necessary.
+				*/
+				if (fip->field_type == TIFF_RATIONAL) {
+					err = TIFFReadDirEntryRationalDirect(tif, dp, &rData);
+					if (err == TIFFReadDirEntryErrOk) 					{
+						if (!TIFFSetFieldRational(tif, dp->tdir_tag, rData.uNum, rData.uDenom))
+							return(0);
+					}
+				} 				
+				else if (fip->field_type == TIFF_SRATIONAL) {
+					err = TIFFReadDirEntrySrationalDirect(tif, dp, (TIFFSRational_t*)&rData);
+					if (err == TIFFReadDirEntryErrOk) {
+						if (!TIFFSetFieldRational(tif, dp->tdir_tag, rData.uNum, rData.uDenom))
+							return(0);
+					}
+				} 
+				else {
+					/* normal libtiff code */
+					err = TIFFReadDirEntryDouble(tif, dp, &data);
+					if (err == TIFFReadDirEntryErrOk)
+					{
+						if (!TIFFSetField(tif, dp->tdir_tag, data))
+							return(0);
+					}
 				}
-			}
+		}
 			break;
 		case TIFF_SETGET_IFD8:
 			{
@@ -5280,21 +6075,54 @@ TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp, int recover)
 		case TIFF_SETGET_C0_FLOAT:
 			{
 				float* data;
+				TIFFRational_t* rData = NULL;
 				assert(fip->field_readcount>=1);
 				assert(fip->field_passcount==0);
 				if (dp->tdir_count!=(uint64_t)fip->field_readcount)
 					/* corrupt file */;
 				else
 				{
-					err=TIFFReadDirEntryFloatArray(tif,dp,&data);
-					if (err==TIFFReadDirEntryErrOk)
-					{
-						int m;
-						m=TIFFSetField(tif,dp->tdir_tag,data);
-						if (data!=0)
-							_TIFFfree(data);
-						if (!m)
-							return(0);
+					/*--: SetGetRATIONAL_directly:_CustomTag: Rationals have now also rationals as internal storage.
+							Distinguish between signed and unsigned because of input checking for rational range in TIFFReadDirEntryXXX().
+							However, in TIFFSetFieldRational() no signed / unsigned distinguishing is necessary.
+					*/
+					if (fip->field_type == TIFF_RATIONAL) {
+						err = TIFFReadDirEntryRationalDirectArray(tif, dp, &rData);
+						if (err == TIFFReadDirEntryErrOk && rData != NULL)
+						{
+							/* Distiguish between unsigned / signed rationals not necessary here.*/
+							int ret;
+							ret = TIFFSetFieldRational(tif, dp->tdir_tag, rData);
+							if (rData != 0)
+								_TIFFfree(rData);
+							if (!ret)
+								return(0);
+						}
+					}
+					else if (fip->field_type == TIFF_SRATIONAL) {
+						err = TIFFReadDirEntrySrationalDirectArray(tif, dp, (TIFFSRational_t**)&rData);
+						if (err == TIFFReadDirEntryErrOk && rData != NULL) {
+							/* Distiguish between unsigned / signed rationals not necessary here.*/
+							int ret;
+							ret = TIFFSetFieldRational(tif, dp->tdir_tag, rData);
+							if (rData != 0)
+								_TIFFfree(rData);
+							if (!ret)
+								return(0);
+						}
+					}
+					else {
+						/* normal libtiff code */
+						err = TIFFReadDirEntryFloatArray(tif, dp, &data);
+						if (err == TIFFReadDirEntryErrOk)
+						{
+							int m;
+							m = TIFFSetField(tif, dp->tdir_tag, data);
+							if (data != 0)
+								_TIFFfree(data);
+							if (!m)
+								return(0);
+						}
 					}
 				}
 			}
@@ -5303,21 +6131,53 @@ TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp, int recover)
 		case TIFF_SETGET_C0_DOUBLE:
 			{
 				double* data;
+				TIFFRational_t* rData = NULL;
 				assert(fip->field_readcount>=1);
 				assert(fip->field_passcount==0);
 				if (dp->tdir_count!=(uint64_t)fip->field_readcount)
 					/* corrupt file */;
 				else
 				{
-					err=TIFFReadDirEntryDoubleArray(tif,dp,&data);
-					if (err==TIFFReadDirEntryErrOk)
-					{
-						int m;
-						m=TIFFSetField(tif,dp->tdir_tag,data);
-						if (data!=0)
-							_TIFFfree(data);
-						if (!m)
-							return(0);
+					/*--: SetGetRATIONAL_directly:_CustomTag: Rationals have now also rationals as internal storage.
+							Distinguish between signed and unsigned because of input checking for rational range in TIFFReadDirEntryXXX().
+							However, in TIFFSetFieldRational() no signed / unsigned distinguishing is necessary.
+					*/
+					if (fip->field_type == TIFF_RATIONAL) {
+						err = TIFFReadDirEntryRationalDirectArray(tif, dp, &rData);
+						if (err == TIFFReadDirEntryErrOk && rData != NULL) {
+							/* Distiguish between unsigned / signed rationals not necessary here.*/
+							int ret;
+							ret = TIFFSetFieldRational(tif, dp->tdir_tag, rData);
+							if (rData != 0)
+								_TIFFfree(rData);
+							if (!ret)
+								return(0);
+						}
+					}
+					else if (fip->field_type == TIFF_SRATIONAL) {
+						err = TIFFReadDirEntrySrationalDirectArray(tif, dp, (TIFFSRational_t**)&rData);
+						if (err == TIFFReadDirEntryErrOk && rData != NULL) {
+							/* Distiguish between unsigned / signed rationals not necessary here.*/
+							int ret;
+							ret = TIFFSetFieldRational(tif, dp->tdir_tag, rData);
+							if (rData != 0)
+								_TIFFfree(rData);
+							if (!ret)
+								return(0);
+						}
+					}
+					else {
+						/* normal libtiff code */
+						err = TIFFReadDirEntryDoubleArray(tif, dp, &data);
+						if (err == TIFFReadDirEntryErrOk)
+						{
+							int m;
+							m = TIFFSetField(tif, dp->tdir_tag, data);
+							if (data != 0)
+								_TIFFfree(data);
+							if (!m)
+								return(0);
+						}
 					}
 				}
 			}
@@ -5440,21 +6300,53 @@ TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp, int recover)
 		case TIFF_SETGET_C16_FLOAT:
 			{
 				float* data;
+				TIFFRational_t* rData = NULL;
 				assert(fip->field_readcount==TIFF_VARIABLE);
 				assert(fip->field_passcount==1);
 				if (dp->tdir_count>0xFFFF)
 					err=TIFFReadDirEntryErrCount;
 				else
 				{
-					err=TIFFReadDirEntryFloatArray(tif,dp,&data);
-					if (err==TIFFReadDirEntryErrOk)
-					{
-						int m;
-						m=TIFFSetField(tif, dp->tdir_tag, (uint16_t)(dp->tdir_count), data);
-						if (data!=0)
-							_TIFFfree(data);
-						if (!m)
-							return(0);
+					/*--: SetGetRATIONAL_directly:_CustomTag: Rationals have now also rationals as internal storage.
+							Distinguish between signed and unsigned because of input checking for rational range in TIFFReadDirEntryXXX().
+							However, in TIFFSetFieldRational() no signed / unsigned distinguishing is necessary.
+					*/
+					if (fip->field_type == TIFF_RATIONAL) {
+						err = TIFFReadDirEntryRationalDirectArray(tif, dp, &rData);
+						if (err == TIFFReadDirEntryErrOk && rData != NULL) {
+							/* Distiguish between unsigned / signed rationals not necessary here.*/
+							int ret;
+							ret = TIFFSetFieldRational(tif, dp->tdir_tag, (uint16_t)(dp->tdir_count), rData);
+							if (rData != 0)
+								_TIFFfree(rData);
+							if (!ret)
+								return(0);
+						}
+					}
+					else if (fip->field_type == TIFF_SRATIONAL) {
+						err = TIFFReadDirEntrySrationalDirectArray(tif, dp, (TIFFSRational_t**)&rData);
+						if (err == TIFFReadDirEntryErrOk && rData != NULL) {
+							/* Distiguish between unsigned / signed rationals not necessary here.*/
+							int ret;
+							ret = TIFFSetFieldRational(tif, dp->tdir_tag, (uint16_t)(dp->tdir_count), rData);
+							if (rData != 0)
+								_TIFFfree(rData);
+							if (!ret)
+								return(0);
+						}
+					}
+					else {
+						/* normal libtiff code */
+						err = TIFFReadDirEntryFloatArray(tif, dp, &data);
+						if (err == TIFFReadDirEntryErrOk)
+						{
+							int m;
+							m = TIFFSetField(tif, dp->tdir_tag, (uint16_t)(dp->tdir_count), data);
+							if (data != 0)
+								_TIFFfree(data);
+							if (!m)
+								return(0);
+						}
 					}
 				}
 			}
@@ -5462,21 +6354,53 @@ TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp, int recover)
 		case TIFF_SETGET_C16_DOUBLE:
 			{
 				double* data;
+				TIFFRational_t* rData = NULL;
 				assert(fip->field_readcount==TIFF_VARIABLE);
 				assert(fip->field_passcount==1);
 				if (dp->tdir_count>0xFFFF)
 					err=TIFFReadDirEntryErrCount;
 				else
 				{
-					err=TIFFReadDirEntryDoubleArray(tif,dp,&data);
-					if (err==TIFFReadDirEntryErrOk)
-					{
-						int m;
-						m=TIFFSetField(tif, dp->tdir_tag, (uint16_t)(dp->tdir_count), data);
-						if (data!=0)
-							_TIFFfree(data);
-						if (!m)
-							return(0);
+					/*--: SetGetRATIONAL_directly:_CustomTag: Rationals have now also rationals as internal storage.
+							Distinguish between signed and unsigned because of input checking for rational range in TIFFReadDirEntryXXX().
+							However, in TIFFSetFieldRational() no signed / unsigned distinguishing is necessary.
+					*/
+					if (fip->field_type == TIFF_RATIONAL) {
+						err = TIFFReadDirEntryRationalDirectArray(tif, dp, &rData);
+						if (err == TIFFReadDirEntryErrOk && rData != NULL) {
+							/* Distiguish between unsigned / signed rationals not necessary here.*/
+							int ret;
+							ret = TIFFSetFieldRational(tif, dp->tdir_tag, (uint16_t)(dp->tdir_count), rData);
+							if (rData != 0)
+								_TIFFfree(rData);
+							if (!ret)
+								return(0);
+						}
+					}
+					else if (fip->field_type == TIFF_SRATIONAL) {
+						err = TIFFReadDirEntrySrationalDirectArray(tif, dp, (TIFFSRational_t**)&rData);
+						if (err == TIFFReadDirEntryErrOk && rData != NULL) {
+							/* Distiguish between unsigned / signed rationals not necessary here.*/
+							int ret;
+							ret = TIFFSetFieldRational(tif, dp->tdir_tag, (uint16_t)(dp->tdir_count), rData);
+							if (rData != 0)
+								_TIFFfree(rData);
+							if (!ret)
+								return(0);
+						}
+					}
+					else {
+						/* normal libtiff code */
+						err = TIFFReadDirEntryDoubleArray(tif, dp, &data);
+						if (err == TIFFReadDirEntryErrOk)
+						{
+							int m;
+							m = TIFFSetField(tif, dp->tdir_tag, (uint16_t)(dp->tdir_count), data);
+							if (data != 0)
+								_TIFFfree(data);
+							if (!m)
+								return(0);
+						}
 					}
 				}
 			}
@@ -5664,34 +6588,98 @@ TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp, int recover)
 		case TIFF_SETGET_C32_FLOAT:
 			{
 				float* data;
+				TIFFRational_t* rData = NULL;
 				assert(fip->field_readcount==TIFF_VARIABLE2);
 				assert(fip->field_passcount==1);
-				err=TIFFReadDirEntryFloatArray(tif,dp,&data);
-				if (err==TIFFReadDirEntryErrOk)
-				{
-					int m;
-					m=TIFFSetField(tif, dp->tdir_tag, (uint32_t)(dp->tdir_count), data);
-					if (data!=0)
-						_TIFFfree(data);
-					if (!m)
-						return(0);
+				/*--: SetGetRATIONAL_directly:_CustomTag: Rationals have now also rationals as internal storage.
+						Distinguish between signed and unsigned because of input checking for rational range in TIFFReadDirEntryXXX().
+						However, in TIFFSetFieldRational() no signed / unsigned distinguishing is necessary.
+				*/
+				if (fip->field_type == TIFF_RATIONAL) {
+					err = TIFFReadDirEntryRationalDirectArray(tif, dp, &rData);
+					if (err == TIFFReadDirEntryErrOk && rData != NULL) {
+						/* Distiguish between unsigned / signed rationals not necessary here.*/
+						int ret;
+						ret = TIFFSetFieldRational(tif, dp->tdir_tag, (uint32_t)(dp->tdir_count), rData);
+						if (rData != 0)
+							_TIFFfree(rData);
+						if (!ret)
+							return(0);
+					}
+				}
+				else if (fip->field_type == TIFF_SRATIONAL) {
+					err = TIFFReadDirEntrySrationalDirectArray(tif, dp, (TIFFSRational_t**)&rData);
+					if (err == TIFFReadDirEntryErrOk && rData != NULL) {
+						/* Distiguish between unsigned / signed rationals not necessary here.*/
+						int ret;
+						ret = TIFFSetFieldRational(tif, dp->tdir_tag, (uint32_t)(dp->tdir_count), rData);
+						if (rData != 0)
+							_TIFFfree(rData);
+						if (!ret)
+							return(0);
+					}
+				}
+				else {
+					/* normal libtiff code */
+					err = TIFFReadDirEntryFloatArray(tif, dp, &data);
+					if (err == TIFFReadDirEntryErrOk)
+					{
+						int m;
+						m = TIFFSetField(tif, dp->tdir_tag, (uint32_t)(dp->tdir_count), data);
+						if (data != 0)
+							_TIFFfree(data);
+						if (!m)
+							return(0);
+					}
 				}
 			}
 			break;
 		case TIFF_SETGET_C32_DOUBLE:
 			{
 				double* data;
+				TIFFRational_t* rData = NULL;
 				assert(fip->field_readcount==TIFF_VARIABLE2);
 				assert(fip->field_passcount==1);
-				err=TIFFReadDirEntryDoubleArray(tif,dp,&data);
-				if (err==TIFFReadDirEntryErrOk)
-				{
-					int m;
-					m=TIFFSetField(tif, dp->tdir_tag, (uint32_t)(dp->tdir_count), data);
-					if (data!=0)
-						_TIFFfree(data);
-					if (!m)
-						return(0);
+				/*--: SetGetRATIONAL_directly:_CustomTag: Rationals have now also rationals as internal storage.
+						Distinguish between signed and unsigned because of input checking for rational range in TIFFReadDirEntryXXX().
+						However, in TIFFSetFieldRational() no signed / unsigned distinguishing is necessary.
+				*/
+				if (fip->field_type == TIFF_RATIONAL) {
+					err = TIFFReadDirEntryRationalDirectArray(tif, dp, &rData);
+					if (err == TIFFReadDirEntryErrOk && rData != NULL) {
+						/* Distiguish between unsigned / signed rationals not necessary here.*/
+						int ret;
+						ret = TIFFSetFieldRational(tif, dp->tdir_tag, (uint32_t)(dp->tdir_count), rData);
+						if (rData != 0)
+							_TIFFfree(rData);
+						if (!ret)
+							return(0);
+					}
+				}
+				else if (fip->field_type == TIFF_SRATIONAL) {
+					err = TIFFReadDirEntrySrationalDirectArray(tif, dp, (TIFFSRational_t**)&rData);
+					if (err == TIFFReadDirEntryErrOk && rData != NULL) {
+						/* Distiguish between unsigned / signed rationals not necessary here.*/
+						int ret;
+						ret = TIFFSetFieldRational(tif, dp->tdir_tag, (uint32_t)(dp->tdir_count), rData);
+						if (rData != 0)
+							_TIFFfree(rData);
+						if (!ret)
+							return(0);
+					}
+				}
+				else {
+					/* normal libtiff code */
+					err = TIFFReadDirEntryDoubleArray(tif, dp, &data);
+					if (err == TIFFReadDirEntryErrOk)
+					{
+						int m;
+						m = TIFFSetField(tif, dp->tdir_tag, (uint32_t)(dp->tdir_count), data);
+						if (data != 0)
+							_TIFFfree(data);
+						if (!m)
+							return(0);
+					}
 				}
 			}
 			break;
@@ -5722,7 +6710,7 @@ TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp, int recover)
 		return(0);
 	}
 	return(1);
-}
+} /*-- TIFFFetchNormalTag() --*/
 
 /*
  * Fetch a set of offsets or lengths.
