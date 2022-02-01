@@ -84,7 +84,7 @@ typedef struct {
 	uint16_t  td_minsamplevalue, td_maxsamplevalue;
 	double* td_sminsamplevalue;
 	double* td_smaxsamplevalue;
-	float   td_xresolution, td_yresolution;
+	TIFFRational_t td_xresolution, td_yresolution;  /* SetGetRATIONAL_directly: */
 	uint16_t  td_resolutionunit;
 	uint16_t  td_planarconfig;
 	float   td_xposition, td_yposition;

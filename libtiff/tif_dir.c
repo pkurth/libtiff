@@ -337,13 +337,15 @@ _TIFFVSetField(TIFF* tif, uint32_t tag, va_list ap)
         dblval = va_arg(ap, double);
         if( dblval < 0 )
             goto badvaluedouble;
-		td->td_xresolution = _TIFFClampDoubleToFloat( dblval );
+		/* SetGetRATIONAL_directly: */
+		TIFFDoubleToRational(dblval, &td->td_xresolution.uNum, &td->td_xresolution.uDenom);
 		break;
 	case TIFFTAG_YRESOLUTION:
         dblval = va_arg(ap, double);
         if( dblval < 0 )
             goto badvaluedouble;
-		td->td_yresolution = _TIFFClampDoubleToFloat( dblval );
+		/* SetGetRATIONAL_directly: */
+		TIFFDoubleToRational(dblval, &td->td_yresolution.uNum, &td->td_yresolution.uDenom);
 		break;
 	case TIFFTAG_PLANARCONFIG:
 		v = (uint16_t) va_arg(ap, uint16_vap);
@@ -781,7 +783,87 @@ badvaluedouble:
         va_end(ap);
         }
     return (0);
-}
+} /* _TIFFVSetField() */
+
+
+static int
+_TIFFVSetFieldRational(TIFF* tif, uint32_t tag, va_list ap)
+{
+	/* SetGetRATIONAL_directly: 
+	 * _TIFFVSetFieldRational() is necessary to distinguish the va_list parameters for directly setting rational values
+	 * from the standard case, where a float value is provided.
+	 * 
+	 * This routine expects as va_list: numerator , denominator as uint_32 (or int_32 for signed rationals)
+	 *  or a pointer to a rational (or signed rational) array.
+	 */
+	static const char module[] = "_TIFFVSetFieldRational";
+
+	TIFFDirectory* td = &tif->tif_dir;
+	int status = 1;
+	/* TIFFRational_t* uR; */
+
+	const TIFFField* fip = TIFFFindField(tif, tag, TIFF_ANY);
+	uint32_t standard_tag = tag;
+	if (fip == NULL) /* cannot happen since OkToChangeTag() already checks it */
+		return 0;
+	
+	/* Check for error if it is not a RATIONAL-tag. */
+	if (fip->field_type != TIFF_RATIONAL && fip->field_type != TIFF_SRATIONAL) {
+		TIFFErrorExt(tif->tif_clientdata, module, "This function accepts only rational tif-tag!");
+		return 0;
+	}
+	
+	/*
+	 * We want to force the custom code to be used for custom
+	 * fields even if the tag happens to match a well known
+	 * one - important for reinterpreted handling of standard
+	 * tag values in custom directories (i.e. EXIF)
+	 */
+	if (fip->field_bit == FIELD_CUSTOM) {
+		standard_tag = 0;
+	}
+
+	switch (standard_tag) {
+	/* hereafter, only rational tags are handled */
+		case TIFFTAG_XRESOLUTION:
+			td->td_xresolution.uNum = va_arg(ap, uint32_t);
+			td->td_xresolution.uDenom = va_arg(ap, uint32_t);
+			if (td->td_xresolution.uDenom == 0) {
+				TIFFErrorExt(tif->tif_clientdata, module, "Denominator of rational values shall not be set to zero!");
+				return 0;
+			}
+			break;
+		case TIFFTAG_YRESOLUTION:
+			td->td_yresolution.uNum = va_arg(ap, uint32_t);
+			td->td_yresolution.uDenom = va_arg(ap, uint32_t);
+			if (td->td_yresolution.uDenom == 0) {
+				TIFFErrorExt(tif->tif_clientdata, module, "Denominator of rational values shall not be set to zero!");
+				return 0;
+			}
+			break;
+
+		default: {
+			/* 
+			 * Code for custom tags has been removed for this initial merge request.
+			 * ToDo: ############ Insert that code lateron ########################
+			*/
+		} /* default: of switch(standard_tag) */
+	} /*-- switch(standard_tag) --*/
+
+	if (status) {
+		const TIFFField* fip2 = TIFFFieldWithTag(tif, tag);
+		if (fip2)
+			TIFFSetFieldBit(tif, fip2->field_bit);
+		tif->tif_flags |= TIFF_DIRTYDIRECT;
+	}
+
+/* end: */
+	va_end(ap);
+	return (status);
+} /* _TIFFVSetFieldRational() */
+
+
+
 
 /*
  * Return 1/0 according to whether or not
@@ -836,6 +918,18 @@ TIFFSetField(TIFF* tif, uint32_t tag, ...)
 	return (status);
 }
 
+int
+TIFFSetFieldRational(TIFF* tif, uint32_t tag, ...)
+{   /* SetGetRATIONAL_directly: */
+	va_list ap;
+	int status;
+
+	va_start(ap, tag);
+	status = TIFFVSetFieldRational(tif, tag, ap);
+	va_end(ap);
+	return (status);
+} /* TIFFSetFieldRational() */
+
 /*
  * Clear the contents of the field in the internal structure.
  */
@@ -888,6 +982,13 @@ TIFFVSetField(TIFF* tif, uint32_t tag, va_list ap)
 {
 	return OkToChangeTag(tif, tag) ?
 	    (*tif->tif_tagmethods.vsetfield)(tif, tag, ap) : 0;
+}
+
+int
+TIFFVSetFieldRational(TIFF* tif, uint32_t tag, va_list ap)
+{   /* SetGetRATIONAL_directly: */
+	return OkToChangeTag(tif, tag) ?
+		(*tif->tif_tagmethods.vsetfieldrational)(tif, tag, ap) : 0;
 }
 
 static int
@@ -1007,10 +1108,10 @@ _TIFFVGetField(TIFF* tif, uint32_t tag, va_list ap)
 			}
 			break;
 		case TIFFTAG_XRESOLUTION:
-			*va_arg(ap, float*) = td->td_xresolution;
+			*va_arg(ap, float*) = _TIFFClampDoubleToFloat(((double)td->td_xresolution.uNum / (double)td->td_xresolution.uDenom));  /* SetGetRATIONAL_directly: */
 			break;
 		case TIFFTAG_YRESOLUTION:
-			*va_arg(ap, float*) = td->td_yresolution;
+			*va_arg(ap, float*) = _TIFFClampDoubleToFloat(((double)td->td_yresolution.uNum / (double)td->td_yresolution.uDenom));  /* SetGetRATIONAL_directly: */
 			break;
 		case TIFFTAG_PLANARCONFIG:
 			*va_arg(ap, uint16_t*) = td->td_planarconfig;
@@ -1264,7 +1365,67 @@ _TIFFVGetField(TIFF* tif, uint32_t tag, va_list ap)
 			}
 	}
 	return(ret_val);
-}
+} /*-- _TIFFVGetField() --*/
+
+
+
+static int
+_TIFFVGetFieldRational(TIFF* tif, uint32_t tag, va_list ap)
+{
+	/* SetGetRATIONAL_directly:
+	 * _TIFFVGetFieldRational() is necessary to distinguish the va_list parameters for directly setting rational values
+	 * from the standard case, where a float value is provided.
+	 *
+	 * This routine expects as va_list: Pointer to numerator , denominator as uint_32-pointer (or int_32-pointer for signed rationals),
+	 * or returns the pointer of the internal storage onto the rational array.
+	 */
+	static const char module[] = "_TIFFVGetFieldRational";
+
+	TIFFDirectory* td = &tif->tif_dir;
+	int ret_val = 1;
+	uint32_t standard_tag = tag;
+	const TIFFField* fip = TIFFFindField(tif, tag, TIFF_ANY);
+	if (fip == NULL) /* cannot happen since TIFFGetField() already checks it */
+		return 0;
+
+	/* Check for error if it is not a RATIONAL-tag. */
+	if (fip->field_type != TIFF_RATIONAL && fip->field_type != TIFF_SRATIONAL) {
+		TIFFErrorExt(tif->tif_clientdata, module, "This function accepts only rational tif-tag!");
+		return 0;
+	}
+
+	/*
+	 * We want to force the custom code to be used for custom
+	 * fields even if the tag happens to match a well known
+	 * one - important for reinterpreted handling of standard
+	 * tag values in custom directories (i.e. EXIF)
+	 */
+	if (fip->field_bit == FIELD_CUSTOM) {
+		standard_tag = 0;
+	}
+
+	switch (standard_tag) {
+		/* hereafter, only rational tags are handled */
+		case TIFFTAG_XRESOLUTION:
+			*va_arg(ap, uint32_t*) = td->td_xresolution.uNum;
+			*va_arg(ap, uint32_t*) = td->td_xresolution.uDenom;
+			break;
+		case TIFFTAG_YRESOLUTION:
+			*va_arg(ap, uint32_t*) = td->td_yresolution.uNum;
+			*va_arg(ap, uint32_t*) = td->td_yresolution.uDenom;
+			break;
+
+		default:
+		{
+			/*
+			 * Code for custom tags has been removed for this initial merge request.
+			 * ToDo: ############ Insert that code lateron ########################
+			*/
+		} /* default: of switch(standard_tag) */
+	} /*-- switch(standard_tag) --*/
+	return(ret_val);
+} /*-- _TIFFVGetFieldRational() --*/
+
 
 /*
  * Return the value of a field in the
@@ -1282,6 +1443,18 @@ TIFFGetField(TIFF* tif, uint32_t tag, ...)
 	return (status);
 }
 
+int
+TIFFGetFieldRational(TIFF* tif, uint32_t tag, ...)
+{	/* SetGetRATIONAL_directly: */
+	int status;
+	va_list ap;
+
+	va_start(ap, tag);
+	status = TIFFVGetFieldRational(tif, tag, ap);
+	va_end(ap);
+	return (status);
+} /*-- TIFFGetFieldRational() --*/
+
 /*
  * Like TIFFGetField, but taking a varargs
  * parameter list.  This routine is useful
@@ -1294,6 +1467,14 @@ TIFFVGetField(TIFF* tif, uint32_t tag, va_list ap)
 	const TIFFField* fip = TIFFFindField(tif, tag, TIFF_ANY);
 	return (fip && (isPseudoTag(tag) || TIFFFieldSet(tif, fip->field_bit)) ?
 	    (*tif->tif_tagmethods.vgetfield)(tif, tag, ap) : 0);
+}
+
+int
+TIFFVGetFieldRational(TIFF* tif, uint32_t tag, va_list ap)
+{	/* SetGetRATIONAL_directly: */
+	const TIFFField* fip = TIFFFindField(tif, tag, TIFF_ANY);
+	return (fip && (isPseudoTag(tag) || TIFFFieldSet(tif, fip->field_bit)) ?
+		(*tif->tif_tagmethods.vgetfieldrational)(tif, tag, ap) : 0);
 }
 
 #define	CleanupField(member) {		\
@@ -1453,6 +1634,9 @@ TIFFDefaultDirectory(TIFF* tif)
 	tif->tif_foundfield = NULL;
 	tif->tif_tagmethods.vsetfield = _TIFFVSetField;  
 	tif->tif_tagmethods.vgetfield = _TIFFVGetField;
+	/* SetGetRATIONAL_directly: */
+	tif->tif_tagmethods.vsetfieldrational = _TIFFVSetFieldRational;
+	tif->tif_tagmethods.vgetfieldrational = _TIFFVGetFieldRational;
 	tif->tif_tagmethods.printdir = NULL;
 	/*
 	 *  Give client code a chance to install their own
