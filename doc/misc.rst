@@ -1,40 +1,27 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<HTML>
-<HEAD>
-<TITLE>
 Acknowledgments and Other Issues
-</TITLE>
-<style type="text/css">
-body {
-font-family: Arial, Helvetica, Sans;
-}
-</style>
-</HEAD>
-<BODY>
-<H1>
-<IMG SRC="images/ring.gif" WIDTH=124 HEIGHT=124 ALIGN=left BORDER=1 HSPACE=6 ALT="ring">
-Acknowledgments and Other Issues
-</H1>
+--------------------------------
 
-<P>
+.. image:: images/ring.gif
+    :width: 124
+    :alt: ring
+
 Silicon Graphics has seen fit to allow us to give this work away.  It
 is free.  There is no support or guarantee of any sort as to its
 operations, correctness, or whatever.  If you do anything useful with
 all or parts of it you need to honor the copyright notices.  It would
-also be nice to be acknowledged.<p>
+also be nice to be acknowledged.
 
-<BR CLEAR=left>
-
-<H2>Acknowledgements</H2>
+Acknowledgements
+----------------
 
 The libtiff software was written by Sam Leffler while working for
-Silicon Graphics.<p>
+Silicon Graphics.
 
 The LZW algorithm is derived from the compress program (the proper attribution
 is included in the source code).  The Group 3 fax stuff originated as code
 from Jef Poskanzer, but has since been rewritten several times.  The latest
 version uses an algorithm from Frank Cringle -- consult
-<TT>libtiff/mkg3states.c</TT> and <TT>libtiff/tif_fax3.h</TT> for further
+:file:`libtiff/mkg3states.c` and :file:`libtiff/tif_fax3.h` for further
 information. The JPEG support was written by Tom Lane and is dependent on the
 excellent work of Tom Lane and the Independent JPEG Group (IJG) who distribute
 their work under friendly licensing similar to this software. Joris Van Damme
@@ -45,7 +32,8 @@ module was written by Lee Howard and depends on JBIG library from the Markus
 Kuhn. Many other people have by now helped with bug fixes and code; a few of
 the more persistent contributors have been:
 
-<PRE>
+::
+
     Bjorn P. Brox
     Dan McCoy
     J.T. Conklin                
@@ -83,13 +71,12 @@ the more persistent contributors have been:
     Tavis Ormandy
     Richard Nolde
     Even Rouault
-</PRE>
 
 (my apology to anyone that was inadvertently not listed.)
 
-<H2>Use and Copyright</H2>
+Use and Copyright
+-----------------
 
-<PRE><B>
 Copyright (c) 1988-1997 Sam Leffler
 Copyright (c) 1991-1997 Silicon Graphics, Inc.
 
@@ -111,11 +98,3 @@ OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
 WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF 
 LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 
 OF THIS SOFTWARE.
-</B></PRE>
-
-<HR>
-
-
-Last updated: $Date: 2016-09-25 20:05:44 $
-</BODY>
-</HTML>

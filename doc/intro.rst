@@ -1,50 +1,40 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<HTML>
-<HEAD>
-<TITLE>
 Introduction to the TIFF Documentation
-</TITLE>
-<style type="text/css">
-body {
-font-family: Arial, Helvetica, Sans;
-}
-</style>
-</HEAD>
-<BODY>
-<H1>
-<IMG SRC="images/strike.gif" WIDTH=128 HEIGHT=100 ALIGN=left HSPACE=6 ALT="strike">
-Introduction to the TIFF Documentation
-</H1>
+======================================
 
+.. image:: images/strike.gif
+    :width: 128
+    :alt: strike
 
-<P>
 The following definitions are used throughout this documentation.
 They are consistent with the terminology used in the TIFF 6.0 specification.
 
-<DL>
-<DT><I>Sample</I>
-<DD>The unit of information stored in an image; often called a
-  channel elsewhere.  Sample values are numbers, usually unsigned
-  integers, but possibly in some other format if the SampleFormat
-  tag is specified in a TIFF
-<DT><I>Pixel</I>
-<DD>A collection of one or more samples that go together.
-<DT><I>Row</I>
-<DD>An Nx1 rectangular collection of pixels.
-<DT><I>Tile</I>
-<DD>An NxM rectangular organization of data (or pixels).
-<DT><I>Strip</I>
-<DD>A tile whose width is the full image width.
-<DT><I>Compression</I>
-<DD>A scheme by which pixel or sample data are stored in
-  an encoded form, specifically with the intent of reducing the
-  storage cost.
-<DT><I>Codec</I>
-<DD>Software that implements the decoding and encoding algorithms
-  of a compression scheme.
-</DL>
+Sample:
+    The unit of information stored in an image; often called a
+    channel elsewhere.  Sample values are numbers, usually unsigned
+    integers, but possibly in some other format if the SampleFormat
+    tag is specified in a TIFF
 
-<P>
+Pixel:
+    A collection of one or more samples that go together.
+
+Row:
+    An Nx1 rectangular collection of pixels.
+
+Tile:
+    An NxM rectangular organization of data (or pixels).
+
+Strip:
+    A tile whose width is the full image width.
+
+Compression:
+    A scheme by which pixel or sample data are stored in
+    an encoded form, specifically with the intent of reducing the
+    storage cost.
+
+Codec:
+    Software that implements the decoding and encoding algorithms
+    of a compression scheme.
+
 In order to better understand how TIFF works (and consequently this
 software) it is important to recognize the distinction between the
 physical organization of image data as it is stored in a TIFF and how
@@ -62,12 +52,3 @@ daunting.  Good applications that handle TIFF work by handling as wide
 a range of storage formats as possible, while constraining the
 acceptable image characteristics to those that make sense for the
 application.
-
-
-<P>
-<HR>
-
-Last updated: $Date: 2016-09-25 20:05:44 $
-
-</BODY>
-</HTML>

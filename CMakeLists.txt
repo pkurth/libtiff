@@ -141,6 +141,7 @@ add_subdirectory(contrib)
 add_subdirectory(build)
 add_subdirectory(man)
 add_subdirectory(html)
+add_subdirectory(doc)
 
 # pkg-config support
 include(PkgConfig)

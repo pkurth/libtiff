@@ -64,8 +64,8 @@ if (BUILD_SPHINX AND SPHINX_BUILD)
                        COMMAND ${CMAKE_COMMAND} -E make_directory "${sphinx_builddir}/cache"
                        COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/man"
                        COMMAND ${SPHINX_BUILD}
-                               -D "release=${ome-files_VERSION}${OME_VCS_DEV}"
-                               -D "version=${ome-files_VERSION_MAJOR}.${ome-files_VERSION_MINOR}"
+                               -D "release=${LIBTIFF_VERSION_FULL}"
+                               -D "version=${tiff_VERSION_MAJOR}.${tiff_VERSION_MINOR}"
                                -c "${sphinx_builddir}"
                                -d "${sphinx_builddir}/cache"
                                -b man

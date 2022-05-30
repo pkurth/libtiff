@@ -36,6 +36,21 @@
 
 find_package(Python3 COMPONENTS Interpreter)
 
+# Sphinx documentation generator
+find_program(SPHINX_BUILD sphinx-build)
+if (SPHINX_BUILD)
+    message(STATUS "Looking for sphinx-build - ${SPHINX_BUILD}")
+else()
+    message(STATUS "Looking for sphinx-build - not found")
+endif()
+
+set(SPHINX_DEFAULT OFF)
+if(SPHINX_BUILD)
+    set(SPHINX_DEFAULT ON)
+endif()
+option(sphinx "Enable sphinx manual page and HTML documentation" ${SPHINX_DEFAULT})
+option(sphinx-linkcheck "Check sphinx documentation links by default" OFF)
+
 set(BUILD_SPHINX ${sphinx})
 
 set(_ome_sphinx_list_dir "${CMAKE_CURRENT_LIST_DIR}")
