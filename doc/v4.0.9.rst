@@ -267,7 +267,7 @@ Library changes
 * :file:`libtiff/tif_jpeg.c`: accept reading the last strip of a JPEG compressed
   file if the codestream height is larger than the truncated height of the
   strip. Emit a warning in this situation since this is non compliant.
-* :c:file:`libtiff/tiffiop.h`, :c:type:`tif_aux.c`: redirect :c:func:`SeekOK` macro to a :c:func:`_TIFFSeekoK`
+* :file:`libtiff/tiffiop.h`, :c:type:`tif_aux.c`: redirect :c:func:`SeekOK` macro to a :c:func:`_TIFFSeekoK`
   function that checks if the offset is not bigger than :c:macro:`INT64_MAX`, so as
   to avoid a ``-1`` error return code of :c:func:`TIFFSeekFile` to match a required
   seek to :c:macro:`UINT64_MAX`/``-1``.
@@ -275,7 +275,7 @@ Library changes
   Adapted from proposal by Nicolas Ruff.
 * :file:`libtiff/tif_dirread.c`: add :c:macro:`NULL` check to avoid likely false positive
   null-pointer dereference warning by CLang Static Analyzer.
-:c:file:`libtiff/libtiff.def`: add :c:func:`TIFFReadRGBAStripExt` and :c:func:`TIFFReadRGBATileExt`
+* :file:`libtiff/libtiff.def`: add :c:func:`TIFFReadRGBAStripExt` and :c:func:`TIFFReadRGBATileExt`
   Fixes :bugzilla:`2735`
 * :file:`libtiff/tif_jpeg.c`: add compatibility with libjpeg-turbo 1.5.2 that
   honours ``max_memory_to_use > 0``.
