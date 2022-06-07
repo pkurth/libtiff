@@ -167,6 +167,7 @@ int main(int argc, char* argv[])
 			fprintf(stderr, "tiffsplit: Error: Could not copy data from input to output.\n");
 			return (EXIT_FAILURE);
 
+
 		}
 		TIFFClose(out);
 	} while (TIFFReadDirectory(in));
@@ -180,7 +181,6 @@ static void
 newfilename(void)
 {
     static int first = 1;
-    //static long lastTurn;
     static long fnum;
     static short defname;
     static char *fpnt;
@@ -211,8 +211,6 @@ newfilename(void)
     fnum++;
     sprintf(fname,"%07ld",fnum);
     printf("%07ld",fnum);
-
-
 }
 
 static int
@@ -294,7 +292,6 @@ tiffcp(TIFF* in, TIFF* out)
 static int
 cpStrips(TIFF* in, TIFF* out)
 {
-
 	tmsize_t bufsize = TIFFStripSize(in);
 	unsigned char* buf = (unsigned char*)limitMalloc(bufsize);
 	if (buf) {
@@ -327,7 +324,6 @@ cpStrips(TIFF* in, TIFF* out)
 		fprintf(stderr, "tiffsplit: Error: Can't allocate %"TIFF_SSIZE_FORMAT" bytes for strip-size.\n", bufsize);
 	}
 	return (0);
-
 }
 
 static int
