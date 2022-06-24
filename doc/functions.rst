@@ -12,10 +12,13 @@ TIFF Functions Overview
     functions/TIFFcolor
     functions/TIFFDataWidth
     functions/TIFFError
+    functions/TIFFfield
     functions/TIFFFieldDataType
     functions/TIFFFieldName
     functions/TIFFFieldPassCount
     functions/TIFFFieldReadCount
+    functions/TIFFFieldSetGetSize
+    functions/TIFFFieldSetGetCountSize
     functions/TIFFFieldTag
     functions/TIFFFieldWriteCount
     functions/TIFFFlush

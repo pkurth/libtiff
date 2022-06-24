@@ -49,7 +49,14 @@ if(SPHINX_BUILD)
     set(SPHINX_DEFAULT ON)
 endif()
 option(sphinx "Enable sphinx manual page and HTML documentation" ${SPHINX_DEFAULT})
+option(sphinx-strict "Enable sphinx strict error checking" OFF)
 option(sphinx-linkcheck "Check sphinx documentation links by default" OFF)
+
+# Nitpicky, and warnings are errors.  Will not stop on error, so all errors will be shown.
+set(SPHINX_STRICT_OPTIONS)
+if (sphinx-strict)
+    set(SPHINX_STRICT_OPTIONS -n --keep-going)
+endif()
 
 set(BUILD_SPHINX ${sphinx})
 set(SPHINX_LIST_DIR ${CMAKE_CURRENT_LIST_DIR})

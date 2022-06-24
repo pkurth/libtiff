@@ -20,7 +20,7 @@ Synopsis
 
 .. c:function:: void _TIFFmemcpy(tdata_t dest, const tdata_t src, tsize_t n)
 
-.. c:function:: int _TIFFmemcmp(const tdata_t s1, const tdata_ts2, tsize_t n)
+.. c:function:: int _TIFFmemcmp(const tdata_t s1, const tdata_t s2, tsize_t n)
 
 Description
 -----------

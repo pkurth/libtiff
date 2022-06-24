@@ -84,7 +84,7 @@ Library changes
   :bugzilla-rs:`830`
 
 * :file:`tif_win32.c`: Use ``FILE_SHARE_READ | FILE_SHARE_WRITE`` share
-  mode in :c:func:`CreateFile` call as per bug
+  mode in ``CreateFile`` call as per bug
   :bugzilla-rs:`829`
 
 * :file:`tif_jpeg.c`: Substantial fix for :program:`addtiffo` problems with

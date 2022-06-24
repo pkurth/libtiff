@@ -12,15 +12,23 @@ Synopsis
 
 .. c:function:: const unsigned char* TIFFGetBitRevTable(int reversed)
 
-.. c:function:: void TIFFReverseBits(u_char* data, unsigned long nbytes)
+.. c:function:: void TIFFReverseBits(uint8_t* cp, tmsize_t n)
 
 .. c:function:: void TIFFSwabShort(uint16_t* data)
 
 .. c:function:: void TIFFSwabLong(uint32_t* data)
 
-.. c:function:: void TIFFSwabArrayOfShort(uint16_t* data, unsigned long nshorts)
+.. c:function:: void TIFFSwabArrayOfShort(uint16_t* data, tmsize_t)
 
-.. c:function:: void TIFFSwabArrayOfLong(uint32_t* data, unsigned long nlongs)
+.. c:function:: void TIFFSwabArrayOfTriples(uint8_t* data, tmsize_t)
+
+.. c:function:: void TIFFSwabArrayOfLong(uint32_t* data, tmsize_t)
+
+.. c:function:: void TIFFSwabArrayOfLong8(uint64_t* data, tmsize_t)
+
+.. c:function:: void TIFFSwabArrayOfFloat(float* data, tmsize_t)
+
+.. c:function:: void TIFFSwabArrayOfDouble(double* data, tmsize_t)
 
 Description
 -----------
@@ -38,7 +46,8 @@ lookup table, which is returned using the :c:func:`TIFFGetBitRevTable`
 function.  The *reversed* parameter specifies which table should be
 returned. Supply *1* if you want bit reversal table. Supply *0* to get
 the table that do not reverse bit values. It is a lookup table that can
-be used as an "identity function"; i.e. :c:expr:`TIFFNoBitRevTable[n] == n`.
+be used as an "identity function"; i.e.
+:c:expr:`TIFFNoBitRevTable[n] == n`.
 
 Diagnostics
 -----------

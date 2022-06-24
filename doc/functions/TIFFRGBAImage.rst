@@ -131,7 +131,7 @@ update the display as the raster is being filled:
     }
 
 (the original routine provided by the library is saved in the
-variable :c:var:`putContig`.)
+variable :c:expr:`putContig`.)
 
 Supporting additional TIFF formats
 ----------------------------------

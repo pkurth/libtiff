@@ -10,88 +10,101 @@ TIFFFieldInfo
 -------------
 
 How libtiff manages specific tags is primarily controlled by the
-definition for that tag value stored internally as a TIFFFieldInfo structure.
-This structure looks like this:
+definition for that tag value stored internally as a :c:struct:`TIFFFieldInfo`
+structure.
 
 .. highlight:: c
 
-::
 
-    typedef struct {
-      ttag_t         field_tag;        /* field's tag */
-      short          field_readcount;  /* read count / TIFF_VARIABLE / TIFF_VARIABLE2 / TIFF_SPP */
-      short          field_writecount; /* write count / TIFF_VARIABLE / TIFF_VARIABLE2 */
-      TIFFDataType   field_type;       /* type of associated data */
-      unsigned short field_bit;        /* bit in fieldsset bit vector */
-      unsigned char  field_oktochange; /* if true, can change while writing */
-      unsigned char  field_passcount;  /* if true, pass dir count on set */
-      char          *field_name;       /* ASCII name */
-    } TIFFFieldInfo;
+.. c:macro:: TIFF_VARIABLE
 
+    The special value :c:macro:`TIFF_VARIABLE` indicates that a variable number of
+    values may be read.
 
-.. c:member:: ttag_t TIFFFieldInfo.field_tag
+.. c:macro:: TIFF_VARIABLE2
 
-    The tag number.  For instance 277 for the
-    SamplesPerPixel tag.  Builtin tags will generally have a ``#define`` in
-    :file:`tiff.h` for each known tag.
+    The special value :c:macro:`TIFF_VARIABLE2` is similar to :c:macro:`TIFF_VARIABLE`
+    but the required :c:func:`TIFFGetField` count value must be :c:expr:`uint32_t*` instead
+    of :c:expr:`uint16_t*` as for :c:macro:`TIFF_VARIABLE`.
 
-.. c:member:: short TIFFFieldInfo.field_readcount
+.. c:macro:: TIFF_SPP
 
-    The number of values which should be read.
-    The special value :c:macro:`TIFF_VARIABLE` (-1) indicates that a variable number of
-    values may be read.  The special value :c:macro:`TIFFTAG_SPP` (-2) indicates that there
+    The special value :c:macro:`TIFF_SPP` indicates that there
     should be one value for each sample as defined by :c:macro:`TIFFTAG_SAMPLESPERPIXEL`.
-    The special value :c:macro:`TIFF_VARIABLE2` (-3) is similar to :c:macro:`TIFF_VARIABLE`
-    but the required TIFFGetField() count value must be uint32_t* instead of uint16_t* as
-    for :c:macro:`TIFF_VARIABLE` (-1).
-    For ASCII fields with variable length, this field is :c:macro:`TIFF_VARIABLE`.
 
-.. c:member:: short TIFFFieldInfo.field_writecount
+.. c:struct:: TIFFFieldInfo
 
-    The number of values which should be written.
-    Generally the same as field_readcount.  A few built-in exceptions exist, but
-    I haven't analysed why they differ.
+    .. c:member:: ttag_t field_tag
 
-.. c:member:: TIFFDataType TIFFDataType.field_type
+        The tag number.  For instance 277 for the ``SamplesPerPixel`` tag.
+        Builtin tags will generally have a ``#define`` in :file:`tiff.h`
+        for each known tag.
 
-    Type of the field.  One of :c:enumerator:`TIFF_BYTE`, :c:enumerator:`TIFF_ASCII`,
-    :c:enumerator:`TIFF_SHORT`, :c:enumerator:`TIFF_LONG`,
-    :c:enumerator:`TIFF_RATIONAL`, :c:enumerator:`TIFF_SBYTE`,
-    :c:enumerator:`TIFF_UNDEFINED`, :c:enumerator:`TIFF_SSHORT`,
-    :c:enumerator:`TIFF_SLONG`, :c:enumerator:`TIFF_SRATIONAL`,
-    :c:enumerator:`TIFF_FLOAT`, :c:enumerator:`TIFF_DOUBLE` or
-    :c:enumerator:`TIFF_IFD`.
+    .. c:member:: short field_readcount
 
-.. note::
+        The number of values which should be read, or one one of
+        :c:macro:`TIFF_VARIABLE`, :c:macro:`TIFF_VARIABLE2`
+        or :c:macro:`TIFF_SPP`
 
-    Some fields can support more than one type (for
-    instance short and long).  These fields should have multiple TIFFFieldInfos.
+        For ASCII fields with variable length, this field is :c:macro:`TIFF_VARIABLE`.
 
-.. c:member:: unsigned short TIFFFieldInfo.field_bit
+    .. c:member:: short field_writecount
 
-    Built-in tags stored in special fields in the
-    TIFF structure have assigned field numbers to distinguish them (e.g.
-    :c:macro:`FIELD_SAMPLESPERPIXEL`).  New tags should generally just use
-    :c:macro:`FIELD_CUSTOM` indicating they are stored in the generic tag list.
+        The number of values which should be written, or one of
+        :c:macro:`TIFF_VARIABLE` or :c:macro:`TIFF_VARIABLE2`
 
-.. c:member:: unsigned char TIFFFieldInfo.field_oktochange
+        Generally the same as :c:member:`field_readcount`.
+        A few built-in exceptions exist, but I haven't analysed why they differ.
 
-    TRUE if it is OK to change this tag value
-    while an image is being written.  FALSE for stuff that must be set once
-    and then left unchanged (like ImageWidth, or PhotometricInterpretation for
-    instance).
+    .. c:member:: TIFFDataType field_type
 
-.. c:member:: unsigned char TIFFFieldInfo.field_passcount
+        Type of associated data.  One of
+        :c:enumerator:`TIFF_BYTE`, :c:enumerator:`TIFF_ASCII`,
+        :c:enumerator:`TIFF_SHORT`, :c:enumerator:`TIFF_LONG`,
+        :c:enumerator:`TIFF_RATIONAL`, :c:enumerator:`TIFF_SBYTE`,
+        :c:enumerator:`TIFF_UNDEFINED`, :c:enumerator:`TIFF_SSHORT`,
+        :c:enumerator:`TIFF_SLONG`, :c:enumerator:`TIFF_SRATIONAL`,
+        :c:enumerator:`TIFF_FLOAT`, :c:enumerator:`TIFF_DOUBLE` or
+        :c:enumerator:`TIFF_IFD`.
 
-    If TRUE, then the count value must be passed
-    in :c:func:`TIFFSetField`, and :c:func:`TIFFGetField`, otherwise the count is not required.
-    This should generally be TRUE for non-ascii variable count tags unless
-    the count is implicit (such as with the colormap).
+        .. note::
 
-.. c:member:: char * TIFFFieldInfo.field_name
+            Some fields can support more than one type (for
+            instance short and long).  These fields should have multiple TIFFFieldInfos.
 
-    A name for the tag.  Normally mixed case (studly caps)
-    like ``StripByteCounts``, and relatively short.
+    .. c:member:: unsigned short field_bit
+
+        bit in fieldsset bit vector
+
+        Built-in tags stored in special fields in the
+        TIFF structure have assigned field numbers to distinguish them (e.g.
+        :c:macro:`FIELD_SAMPLESPERPIXEL`).  New tags should generally just use
+        :c:macro:`FIELD_CUSTOM` indicating they are stored in the generic tag list.
+
+    .. c:member:: unsigned char  field_oktochange
+
+        if true, can change while writing
+
+        TRUE if it is OK to change this tag value
+        while an image is being written.  FALSE for stuff that must be set once
+        and then left unchanged (like ImageWidth, or PhotometricInterpretation for
+        instance).
+
+    .. c:member:: unsigned char field_passcount
+
+        if true, pass dir count on set
+
+        If TRUE, then the count value must be passed
+        in :c:func:`TIFFSetField`, and :c:func:`TIFFGetField`, otherwise the count is not required.
+        This should generally be TRUE for non-ascii variable count tags unless
+        the count is implicit (such as with the colormap).
+
+    .. c:member:: char *field_name
+
+        ASCII name
+
+        A name for the tag.  Normally mixed case (studly caps)
+        like ``StripByteCounts``, and relatively short.
 
 A :c:struct:`TIFFFieldInfo` definition exists for each built-in tag in the
 :file:`tif_dirinfo.c` file.  Some tags which support multiple data types
@@ -145,18 +158,18 @@ information on the new tags:
     static const TIFFFieldInfo xtiffFieldInfo[] = {
   
         /* XXX Insert Your tags here */
-        { TIFFTAG_GEOPIXELSCALE,	-1,-1, TIFF_DOUBLE,	FIELD_CUSTOM,
-          TRUE,	TRUE,	"GeoPixelScale" },
-        { TIFFTAG_GEOTRANSMATRIX,	-1,-1, TIFF_DOUBLE,	FIELD_CUSTOM,
-          TRUE,	TRUE,	"GeoTransformationMatrix" },
-        { TIFFTAG_GEOTIEPOINTS,	-1,-1, TIFF_DOUBLE,	FIELD_CUSTOM,
-          TRUE,	TRUE,	"GeoTiePoints" },
-        { TIFFTAG_GEOKEYDIRECTORY, -1,-1, TIFF_SHORT,	FIELD_CUSTOM,
-          TRUE,	TRUE,	"GeoKeyDirectory" },
-        { TIFFTAG_GEODOUBLEPARAMS,	-1,-1, TIFF_DOUBLE,	FIELD_CUSTOM,
-          TRUE,	TRUE,	"GeoDoubleParams" },
-        { TIFFTAG_GEOASCIIPARAMS,	-1,-1, TIFF_ASCII,	FIELD_CUSTOM,
-          TRUE,	FALSE,	"GeoASCIIParams" }
+        { TIFFTAG_GEOPIXELSCALE, -1,-1, TIFF_DOUBLE, FIELD_CUSTOM,
+          TRUE, TRUE, "GeoPixelScale" },
+        { TIFFTAG_GEOTRANSMATRIX, -1,-1, TIFF_DOUBLE, FIELD_CUSTOM,
+          TRUE, TRUE, "GeoTransformationMatrix" },
+        { TIFFTAG_GEOTIEPOINTS, -1,-1, TIFF_DOUBLE, FIELD_CUSTOM,
+          TRUE, TRUE, "GeoTiePoints" },
+        { TIFFTAG_GEOKEYDIRECTORY, -1,-1, TIFF_SHORT, FIELD_CUSTOM,
+          TRUE, TRUE, "GeoKeyDirectory" },
+        { TIFFTAG_GEODOUBLEPARAMS, -1,-1, TIFF_DOUBLE, FIELD_CUSTOM,
+          TRUE, TRUE, "GeoDoubleParams" },
+        { TIFFTAG_GEOASCIIPARAMS, -1,-1, TIFF_ASCII, FIELD_CUSTOM,
+          TRUE, FALSE, "GeoASCIIParams" }
     };
 
 In order to define the tags, we call :c:func:`TIFFMergeFieldInfo` on the
@@ -164,7 +177,7 @@ desired TIFF handle with the list of :c:struct:`TIFFFieldInfo`.
 
 ::
 
-    #define	N(a)	(sizeof (a) / sizeof (a[0]))
+    #define N(a) (sizeof (a) / sizeof (a[0]))
 
     /* Install the extended Tag field info */
     TIFFMergeFieldInfo(tif, xtiffFieldInfo, N(xtiffFieldInfo));
@@ -186,10 +199,10 @@ allowing a chain of customizations to take effect.
     void _XTIFFInitialize(void)
     {
         static int first_time=1;
-	
+ 
         if (! first_time) return; /* Been there. Done that. */
         first_time = 0;
-	
+ 
         /* Grab the inherited method and install */
         _ParentExtender = TIFFSetTagExtender(_XTIFFDefaultDirectory);
     }
@@ -278,10 +291,10 @@ algorithm is used* follow these steps:
    ::
 
       sp->vgetparent = tif->tif_vgetfield;
-      tif->tif_vgetfield = fooVGetField;	/* hook for codec tags */
+      tif->tif_vgetfield = fooVGetField; /* hook for codec tags */
       sp->vsetparent = tif->tif_vsetfield;
-      tif->tif_vsetfield = fooVSetField;	/* hook for codec tags */
-      tif->tif_printdir = fooPrintDir;	/* hook for codec tags */
+      tif->tif_vsetfield = fooVSetField; /* hook for codec tags */
+      tif->tif_printdir = fooPrintDir; /* hook for codec tags */
 
    (Actually you may decide not to override the
    :c:member:`tif_printdir` method, but rather just specify it).

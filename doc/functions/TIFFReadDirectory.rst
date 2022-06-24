@@ -12,6 +12,8 @@ Synopsis
 
 .. c:function:: int TIFFReadDirectory(TIFF* tif)
 
+.. c:function:: int TIFFReadCustomDirectory(TIFF* tif, toff_t diroff, const TIFFFieldArray* infoarray);
+
 Description
 -----------
 

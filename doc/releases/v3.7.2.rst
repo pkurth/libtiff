@@ -115,8 +115,8 @@ Tools changes
   as per bug
   :bugzilla-rs:`785`
 
-* :file:`fax2ps.c`: Replace insecure :c:func:`mktemp` function with the
-  :c:func:`tmpfile` as per bug
+* :file:`fax2ps.c`: Replace insecure ``mktemp`` function with the
+  ``tmpfile`` as per bug
   :bugzilla-rs:`786`
 
 * :file:`tiffgt.c`: Fix problem on big-endian CPUs so that images

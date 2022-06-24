@@ -31,9 +31,7 @@ Configuration defines are split into three areas:
   are considered optional, and
 * those that control operating system or machine-specific support.
 
-If the define :c:macro:`COMPRESSION_SUPPORT` is **not defined**
-then a default set of compression schemes is automatically
-configured:
+The following built-in compression algorithms are enabled by default:
 
 * CCITT Group 3 and 4 algorithms (compression codes 2, 3, 4, and 32771),
 * the Macintosh PackBits algorithm (compression 32773),
@@ -42,22 +40,15 @@ configured:
 * two experimental schemes intended for images with high dynamic range
   (compression 34676 and 34677).
 
-To override the default compression behaviour define
-:c:macro:`COMPRESSION_SUPPORT` and then one or more additional defines
-to enable configuration of the appropriate codecs (see the table
-below); e.g.
-
-.. highlight:: c
-
-::
-
-    #define COMPRESSION_SUPPORT
-    #define CCITT_SUPPORT
-    #define PACKBITS_SUPPORT
+To override the default compression behaviour, set the appropriate
+defines enable configuration of the appropriate codecs (see the list
+below); e.g. :c:macro:`PACKBITS_SUPPORT` and :c:macro:`CCITT_SUPPORT`.
 
 Several other compression schemes are configured separately from
 the default set because they depend on ancillary software
-packages that are not distributed with LibTIFF.
+packages that are not distributed with LibTIFF.  They will be
+enabled automatically if the CMake or Autotools build configuration
+detects them, or they may be explicitly enabled or disabled.
 
 Support for JPEG compression is controlled by :c:macro:`JPEG_SUPPORT`.
 The JPEG codec that comes with LibTIFF is designed for
@@ -70,6 +61,10 @@ This software can be retrieved from the directory
 
     Enabling JPEG support automatically enables support for
     the TIFF 6.0 colorimetry and YCbCr-related tags.
+
+.. c:macro:: DEFLATE_SUPPORT
+
+    Enable Deflate support
 
 Experimental support for the deflate algorithm is controlled by
 :c:macro:`DEFLATE_SUPPORT`.
@@ -101,58 +96,66 @@ and
 :c:macro:`CMYK_SUPPORT`.
 
 
-.. list-table:: :file:`tiffconf.h` defines
-    :widths: 5 20
-    :header-rows: 1
+:file:`tiffconf.h` defines:
 
-    * - Define
-      - Description
+.. c:macro:: CCITT_SUPPORT
 
-    * - :c:macro:`CCITT_SUPPORT`
-      - CCITT Group 3 and 4 algorithms (compression codes 2, 3, 4, and 32771)
+    CCITT Group 3 and 4 algorithms (compression codes 2, 3, 4, and 32771)
 
-    * - :c:macro:`PACKBITS_SUPPORT`
-      - Macintosh PackBits algorithm (compression 32773)
+.. c:macro:: PACKBITS_SUPPORT
 
-    * - :c:macro:`LZW_SUPPORT`
-      - Lempel-Ziv & Welch (LZW) algorithm (compression 5)
+    Macintosh PackBits algorithm (compression 32773)
 
-    * - :c:macro:`THUNDER_SUPPORT`
-      - 4-bit run-length encoding scheme from ThunderScan (compression 32809)
+.. c:macro:: LZW_SUPPORT
 
-    * - :c:macro:`NEXT_SUPPORT`
-      - 2-bit encoding scheme used by NeXT (compression 32766)
+    Lempel-Ziv & Welch (LZW) algorithm (compression 5)
 
-    * - :c:macro:`OJPEG_SUPPORT`
-      - obsolete JPEG scheme defined in the 6.0 spec (compression 6)
+.. c:macro:: THUNDER_SUPPORT
 
-    * - :c:macro:`JPEG_SUPPORT`
-      - current JPEG scheme defined in TTN2 (compression 7)
+    4-bit run-length encoding scheme from ThunderScan (compression 32809)
 
-    * - :c:macro:`ZIP_SUPPORT`
-      - experimental Deflate scheme (compression 32946)
+.. c:macro:: NEXT_SUPPORT
 
-    * - :c:macro:`PIXARLOG_SUPPORT`
-      - Pixar's compression scheme for high-resolution color images (compression 32909)
+    2-bit encoding scheme used by NeXT (compression 32766)
 
-    * - :c:macro:`SGILOG_SUPPORT`
-      - SGI's compression scheme for high-resolution color images (compression 34676 and 34677)
+.. c:macro:: OJPEG_SUPPORT
 
-    * - :c:macro:`COLORIMETRY_SUPPORT`
-      - support for the TIFF 6.0 colorimetry tags
+    obsolete JPEG scheme defined in the 6.0 spec (compression 6)
 
-    * - :c:macro:`YCBCR_SUPPORT`
-      - support for the TIFF 6.0 YCbCr-related tags
+.. c:macro:: JPEG_SUPPORT
 
-    * - :c:macro:`CMYK_SUPPORT`
-      - support for the TIFF 6.0 CMYK-related tags
+    current JPEG scheme defined in TTN2 (compression 7)
 
-    * - :c:macro:`ICC_SUPPORT`
-      - support for the ICC Profile tag; see
-        *The ICC Profile Format Specification*,
-        Annex B.3 "Embedding ICC Profiles in TIFF Files";
-        available at
-        `<http://www.color.org/>`_
+.. c:macro:: ZIP_SUPPORT
+
+    experimental Deflate scheme (compression 32946)
+
+.. c:macro:: PIXARLOG_SUPPORT
+
+    Pixar's compression scheme for high-resolution color images (compression 32909)
+
+.. c:macro:: SGILOG_SUPPORT
+
+    SGI's compression scheme for high-resolution color images (compression 34676 and 34677)
+
+.. c:macro:: COLORIMETRY_SUPPORT
+
+    support for the TIFF 6.0 colorimetry tags
+
+.. c:macro:: YCBCR_SUPPORT
+
+    support for the TIFF 6.0 YCbCr-related tags
+
+.. c:macro:: CMYK_SUPPORT
+
+    support for the TIFF 6.0 CMYK-related tags
+
+.. c:macro:: ICC_SUPPORT
+
+    support for the ICC Profile tag; see
+    *The ICC Profile Format Specification*,
+    Annex B.3 "Embedding ICC Profiles in TIFF Files";
+    available at `<http://www.color.org/>`_
 
 General Portability Comments
 ----------------------------
@@ -191,49 +194,32 @@ The UNIX (:file:`tif_unix.c`) code has had the most use.
 
 Native CPU byte order is determined on the fly by
 the library and does not need to be specified.
+
+The following defines control general portability:
+
+.. c:macro:: HAVE_MMAP
+
+    Define this if there is *mmap-style* support for
+    mapping files into memory (used only to read data).
+
+.. c:macro:: HOST_FILLORDER
+
+    Define the native CPU bit order: one of :c:macro:`FILLORDER_MSB2LSB`
+    or :c:macro:`FILLORDER_LSB2MSB`
+
+.. c:macro:: HOST_BIGENDIAN
+
+    Define the native CPU byte order: 1 if big-endian (Motorola)
+    or 0 if little-endian (Intel); this may be used
+    in codecs to optimize code
+
 The :c:macro:`HOST_FILLORDER` and :c:macro:`HOST_BIGENDIAN`
 definitions are not currently used, but may be employed by
 codecs for optimization purposes.
 
-The following defines control general portability:
-
-.. list-table:: Portability defines
-    :widths: 5 20
-    :header-rows: 1
-
-    * - Define
-      - Description
-
-    * - :c:macro:`BSDTYPES`
-      - Define this if your system does **not** define the
-        usual BSD typedefs: :c:type:`u_char`,
-        :c:type:`u_short`, :c:type:`u_int`, :c:type:`u_long`.
-
-    * - :c:macro:`HAVE_IEEEFP`
-      - Define this as 0 or 1 according to the floating point
-        format supported by the machine.  If your machine does
-        not support IEEE floating point then you will need to
-        add support to tif_machdep.c to convert between the
-        native format and IEEE format.
-
-    * - :c:macro:`HAVE_MMAP`
-      - Define this if there is *mmap-style* support for
-        mapping files into memory (used only to read data).
-
-    * - :c:macro:`HOST_FILLORDER`
-      - Define the native CPU bit order: one of :c:macro:`FILLORDER_MSB2LSB`
-        or :c:macro:`FILLORDER_LSB2MSB`
-
-    * - :c:macro:`HOST_BIGENDIAN`
-      - Define the native CPU byte order: 1 if big-endian (Motorola)
-        or 0 if little-endian (Intel); this may be used
-        in codecs to optimize code
-
 On UNIX systems :c:macro:`HAVE_MMAP` is defined through the running of
 the :program:`configure` script; otherwise support for memory-mapped
 files is disabled.
-Note that :file:`tiffcomp.h` defines :c:macro:`HAVE_IEEEFP` to be
-1 (:c:macro:`BSDTYPES` is not defined).
 
 Types and Portability
 ---------------------
@@ -243,120 +229,312 @@ Two sets of typedefs are used, one for communication with clients
 of the library and one for internal data structures and parsing of the
 TIFF format.  There are interactions between these two to be careful
 of, but for the most part you should be able to deal with portability
-purely by fiddling with the following machine-dependent typedefs:
+purely by fiddling with the following machine-dependent typedefs.  Note
+that C99 :file:`stdint.h` types are used in most cases.
 
-.. list-table:: Portability typedefs
-    :widths: 5 15 5
-    :header-rows: 1
+Included through :file:`tiff.h`:
 
-    * - Typedef
-      - Description
-      - Header
+.. c:type:: uint8_t
 
-    * - :c:type:`uint8_t`
-      - 8-bit unsigned integer
-      - :file:`tiff.h`
+    8-bit unsigned integer
 
-    * - :c:type:`int8_t`
-      - 8-bit signed integer
-      - :file:`tiff.h`
+.. c:type:: int8_t
 
-    * - :c:type:`uint16_t`
-      - 16-bit unsigned integer
-      - :file:`tiff.h`
+    8-bit signed integer
 
-    * - :c:type:`int16_t`
-      - 16-bit signed integer
-      - :file:`tiff.h`
+.. c:type:: uint16_t
 
-    * - :c:type:`uint32_t`
-      - 32-bit unsigned integer
-      - :file:`tiff.h`
+    16-bit unsigned integer
 
-    * - :c:type:`int32_t`
-      - 32-bit signed integer
-      - :file:`tiff.h`
+.. c:type:: int16_t
 
-    * - :c:type:`dblparam_t`
-      - promoted type for floats
-      - :file:`tiffcomp.h`
+    16-bit signed integer
 
-(to clarify :c:type:`dblparam_t`, it is the type that float parameters are
-promoted to when passed by value in a function call.)
+.. c:type:: uint32_t
+
+    32-bit unsigned integer
+
+.. c:type:: int32_t
+
+    32-bit signed integer
+
+.. c:type:: uint64_t
+
+    64-bit unsigned integer
+
+.. c:type:: int64_t
+
+    64-bit signed integer
+
+.. c:type:: size_t
+
+    C size type
+
+.. c:type:: va_list
+
+    Variable argument list
+
+The public typedefs used throughout the library and in public interfaces are
+described in Section :ref:`public-data-types`.
 
 The following typedefs are used throughout the library and interfaces
 to refer to certain objects whose size is dependent on the TIFF image
 structure:
 
-.. list-table:: TIFF image typedefs
-    :widths: 10 10 10
-    :header-rows: 1
+.. c:type:: unsigned char * tidata_t
 
-    * - Typedef
-      - Type
-      - Description
+    internal image data
 
+The following macros are used from the standard library:
 
-    * - :c:type:`ttag_t`
-      - :c:expr:`unsigned int`
-      - directory tag
+.. c:macro:: NULL
 
-    * - :c:type:`tdir_t`
-      - :c:type:`uint16_t`
-      - directory index
+    Null pointer value
 
-    * - :c:type:`tsample_t`
-      - :c:type:`uint16_t`
-      - sample number
+The following types are been used in the past and are obsoleted by the use of the
+C library integer types, above:
 
-    * - :c:type:`tstrip_t`
-      - :c:type:`uint32_t`
-      - strip number
+.. c:type:: u_char
 
-    * - :c:type:`ttile_t`
-      - :c:type:`uint32_t`
-      - tile number
+    Obsolete type.  Use :c:type:`uint8_t`.
 
-    * - :c:type:`tsize_t`
-      - :c:type:`int32_t`
-      - i/o size in bytes
+.. c:type:: u_short
 
-    * - :c:type:`tdata_t`
-      - :c:expr:`void *`
-      - image data ref
+    Obsolete type.  Use :c:type:`uint16_t`.
 
-    * - :c:type:`thandle_t`
-      - :c:expr:`void *`
-      - client data handle
+.. c:type:: u_int
 
-    * - :c:type:`toff_t`
-      - :c:type:`int32_t`
-      - file offset (should be off_t)
+    Obsolete type.  Use :c:type:`uint32_t`.
 
-    * - :c:type:`tidata_t`
-      - :c:expr:`unsigned char *`
-      - internal image data
+.. c:type:: u_long
 
-Note that :c:type:`tstrip_t`, :c:type:`ttile_t`, and :c:type:`tsize_t`
-are constrained to be
-no more than 32-bit quantities by 32-bit fields they are stored
-in in the TIFF image.  Likewise :c:type:`tsample_t` is limited by the 16-bit
-field used to store the ``SamplesPerPixel`` tag.  :c:type:`tdir_t`
-constrains
-the maximum number of IFDs that may appear in an image and may
-be an arbitrary size (without penalty).  :c:type:`ttag_t` must be either
-:c:expr:`int`, :c:expr:`unsigned int`, pointer, or :c:expr:`double`
-because the library uses a varargs
-interface and ANSI C restricts the type of the parameter before an
-ellipsis to be a promoted type.  :c:type:`toff_t` is defined as
-:c:type:`int32_t` because
-TIFF file offsets are (unsigned) 32-bit quantities.  A signed
-value is used because some interfaces return -1 on error (sigh).
-Finally, note that :c:type:`tidata_t` is used internally to the library to
-manipulate internal data.  User-specified data references are
-passed as opaque handles and only cast at the lowest layers where
-their type is presumed.
+    Obsolete type.  Use :c:type:`uint64_t`.
 
+.. c:type:: int8
+
+    Obsolete type.  Use :c:type:`int8_t`.
+
+.. c:type:: uint8
+
+    Obsolete type.  Use :c:type:`uint8_t`.
+
+.. c:type:: int16
+
+    Obsolete type.  Use :c:type:`int16_t`.
+
+.. c:type:: uint16
+
+    Obsolete type.  Use :c:type:`uint16_t`.
+
+.. c:type:: int32
+
+    Obsolete type.  Use :c:type:`int32_t`.
+
+.. c:type:: uint32
+
+    Obsolete type.  Use :c:type:`uint32_t`.
+
+.. c:type:: int64
+
+    Obsolete type.  Use :c:type:`int64_t`.
+
+.. c:type:: uint64
+
+    Obsolete type.  Use :c:type:`uint64_t`.
+
+The following C types and functions are used from the standard library:
+
+.. c:type:: FILE
+
+    File handle
+
+.. c:function:: int memcmp(const void* lhs, const void* rhs, size_t count)
+
+    See `memcmp <https://en.cppreference.com/w/c/string/byte/memcmp>`_
+
+.. c:function:: void* memcpy(void *restrict dest, const void *restrict src, size_t count)
+
+    See `memcpy <https://en.cppreference.com/w/c/string/byte/memcpy>`_
+
+.. c:function:: void* memmove(void* dest, const void* src, size_t count)
+
+    See `memmove <https://en.cppreference.com/w/c/string/byte/memmove>`_
+
+.. c:function:: void *memset(void *dest, int ch, size_t count)
+
+    See `memset <https://en.cppreference.com/w/c/string/byte/memset>`_
+
+.. c:function:: long strtol(const char *restrict str, char **restrict str_end, int base)
+
+    See `strtol <https://en.cppreference.com/w/c/string/byte/strtol>`_
+
+.. c:function:: long long strtoll(const char *restrict str, char **restrict str_end, int base)
+
+    See `strtoll <https://en.cppreference.com/w/c/string/byte/strtol>`_
+
+.. c:function:: unsigned long strtoul(const char *restrict str, char **restrict str_end, int base)
+
+    See `strtoul <https://en.cppreference.com/w/c/string/byte/strtoul>`_
+
+.. c:function:: unsigned long long strtoull(const char *restrict str, char **restrict str_end, int base)
+
+    See `strtoull <https://en.cppreference.com/w/c/string/byte/strtoul>`_
+
+.. c:function:: void* bsearch(const void *key, const void *ptr, size_t count, size_t size, int (*comp)(const void*, const void*))
+
+    See `bsearch <https://en.cppreference.com/w/c/algorithm/bsearch>`_
+
+.. c:function:: void* malloc(size_t size)
+
+    See `malloc <https://en.cppreference.com/w/c/memory/malloc>`_
+
+.. c:function:: void *realloc(void *ptr, size_t new_size)
+
+    See `realloc <https://en.cppreference.com/w/c/memory/realloc>`_
+
+.. c:function:: void free(void* ptr)
+
+    See `free <https://en.cppreference.com/w/c/memory/free>`_
+
+.. c:function:: int printf(const char *restrict format, ...)
+
+    See `printf <https://en.cppreference.com/w/c/io/fprintf>`_
+
+.. c:function:: int snprintf(char *restrict buffer, size_t bufsz, const char *restrict format, ...)
+
+    See `snprintf <https://en.cppreference.com/w/c/io/fprintf>`_
+
+.. c:function:: double pow(double base, double exponent)
+
+    See `pow <https://en.cppreference.com/w/c/numeric/math/pow>`_
+
+The following POSIX types and functions are used from the standard library:
+
+.. c:type:: ssize_t
+
+    Signed size type
+
+.. c:type:: off_t
+
+    File offset
+
+.. c:function:: int open(const char *path, int oflag, ...)
+
+    See `open <https://pubs.opengroup.org/onlinepubs/9699919799/functions/open.html>`_
+
+.. c:function:: int close(int fildes)
+
+    See `close <https://pubs.opengroup.org/onlinepubs/9699919799/functions/close.html>`_
+
+.. c:function:: ssize_t read(int fildes, void *buf, size_t nbyte)
+
+    See `read <https://pubs.opengroup.org/onlinepubs/9699919799/functions/read.html>`_
+
+.. c:function:: ssize_t write(int fildes, const void *buf, size_t nbyte)
+
+    See `write <https://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html>`_
+
+.. c:function:: off_t lseek(int fildes, off_t offset, int whence)
+
+    See `lseek <https://pubs.opengroup.org/onlinepubs/9699919799/functions/lseek.html>`_
+
+.. c:function:: int fseeko(FILE *stream, off_t offset, int whence)
+
+    See `fseeko <https://pubs.opengroup.org/onlinepubs/9699919799/functions/fseeko.html>`_
+
+.. c:function:: int mkstemp(char *template)
+
+    See `mkstemp <https://pubs.opengroup.org/onlinepubs/9699919799/functions/mkstemp.html>`_
+
+.. c:function:: void *mmap(void *addr, size_t len, int prot, int flags, int fildes, off_t off)
+
+    See `mmap <https://pubs.opengroup.org/onlinepubs/9699919799/functions/mmap.html>`_
+
+.. c:function:: int munmap(void *addr, size_t len)
+
+    See `munmap <https://pubs.opengroup.org/onlinepubs/9699919799/functions/munmap.html>`_
+
+The following Windows types and functions are used from the C runtime:
+
+.. c:type:: BOOL
+
+    Boolean type
+
+.. c:type:: LONG
+
+    Long integer type
+
+.. c:type:: DWORD
+
+    Double-length word
+
+.. c:type:: HANDLE
+
+    File handle
+
+.. c:type:: LPCSTR
+
+    Long pointer to constant string
+
+.. c:type:: LPCWSTR
+
+    Long pointer to constant wide string
+
+.. c:type:: LPVOID
+
+    Long pointer to void
+
+.. c:type:: LPCVOID
+
+    Long pointer to const void
+
+.. c:type:: LPDWORD
+
+    Long pointer to double-length word
+
+.. c:type:: LPOVERLAPPED
+
+    Long pointer to overlapped structure
+
+.. c:type:: LPSECURITY_ATTRIBUTES
+
+    Long pointer to security attributes
+
+.. c:type:: PLONG
+
+    Pointer to long
+
+.. c:function:: HANDLE CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
+
+    See `CreateFileW <https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew>`_
+
+.. c:function:: HANDLE CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
+
+    See `CreateFileA <https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea>`_
+
+.. c:function:: BOOL CloseHandle(HANDLE hObject)
+
+    See `CloseHandle <https://docs.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-closehandle>`_
+
+.. c:function:: BOOL ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
+
+    See `ReadFile <https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile>`_
+
+.. c:function:: BOOL WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
+
+    See `WriteFile <https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-writefile>`_
+
+.. c:function:: DWORD SetFilePointer(HANDLE hFile, LONG lDistanceToMove, PLONG lpDistanceToMoveHigh, DWORD dwMoveMethod)
+
+    See `SetFilePointer <https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfilepointer>`_
+
+.. c:function:: HANDLE CreateFileMappingA(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappingAttributes, DWORD flProtect, DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCSTR lpName)
+
+    See `CreateFileMappingA <https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createfilemappinga>`_
+
+.. c:function:: BOOL UnmapViewOfFile(LPCVOID lpBaseAddress)
+
+    See `UnmapViewOfFile <https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-unmapviewoffile>`_
 
 General Comments
 ----------------
@@ -464,3 +642,24 @@ boundaries, and :file:`tif_lzw.c` has the LZW scheme that has the most
 complexity -- it tracks the buffer boundary at a bit level.
 Of course, using a private compression scheme (or private tags) limits
 the portability of your TIFF files.
+
+Internal functions
+------------------
+
+The following functions are private and are not part of the public API.
+
+.. c:function:: int _TIFFRewriteField(TIFF *, uint16_t, TIFFDataType, tmsize_t, void *)
+
+
+
+The following functions are static and not part of the public or private API.
+
+.. c:function:: int TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp, int recover)
+
+    Fetch a normal tag, not covered by special-case code
+
+.. c:function:: int TIFFWriteDirectoryTagData(TIFF* tif, uint32_t* ndir, TIFFDirEntry* dir, uint16_t tag, uint16_t datatype, uint32_t count, uint32_t datalength, void* data)
+
+.. c:function:: int TIFFFetchStripThing(TIFF* tif, TIFFDirEntry* dir, uint32_t nstrips, uint64_t** lpp)
+
+.. c:function:: int TIFFAppendToStrip(TIFF* tif, uint32_t strip, uint8_t* data, tmsize_t cc)

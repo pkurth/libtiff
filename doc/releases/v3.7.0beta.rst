@@ -75,8 +75,8 @@ Library changes
 Tools changes
 -------------
 
-* :program:`tiff2ps`: Avoid zero division in :c:func:`setupPageState` function;
-  properly initialize array in :c:func:`PSDataBW`.
+* :program:`tiff2ps`: Avoid zero division in ``setupPageState()`` function;
+  properly initialize array in ``PSDataBW()``.
 
 * :program:`tiff2pdf`: Multiple bugfixes.
 
