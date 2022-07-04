@@ -235,18 +235,6 @@ TIFFUnRegisterCODEC(TIFFCodec* c)
 	    "Cannot remove compression scheme %s; not registered", c->name);
 }
 
-/************************************************************************/
-/*                       TIFFGetConfisuredCODECs()                      */
-/************************************************************************/
-
-/**
- * Get list of configured codecs, both built-in and registered by user.
- * Caller is responsible to free this structure.
- * 
- * @return returns array of TIFFCodec records (the last record should be NULL)
- * or NULL if function failed.
- */
-
 TIFFCodec*
 TIFFGetConfiguredCODECs()
 {

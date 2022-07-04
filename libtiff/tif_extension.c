@@ -22,11 +22,11 @@
  * OF THIS SOFTWARE.
  */
 
-/*
- * TIFF Library.
+/**
+ * @file LibTIFF extensions.
  *
- * Various routines support external extension of the tag set, and other
- * application extension capabilities. 
+ * Support for external extension of the tag set, and other
+ * application-extension capabilities.
  */
 
 #include "tiffiop.h"

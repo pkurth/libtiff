@@ -3904,10 +3904,6 @@ static int ByteCountLooksBad(TIFF* tif)
 }
 
 
-/*
- * Read the next TIFF directory from a file and convert it to the internal
- * format. We read directories sequentially.
- */
 int
 TIFFReadDirectory(TIFF* tif)
 {
@@ -4885,10 +4881,6 @@ TIFFReadCustomDirectory(TIFF* tif, toff_t diroff,
 	return 1;
 }
 
-/*
- * EXIF is important special case of custom IFD, so we have a special
- * function to read it.
- */
 int
 TIFFReadEXIFDirectory(TIFF* tif, toff_t diroff)
 {
@@ -4897,9 +4889,6 @@ TIFFReadEXIFDirectory(TIFF* tif, toff_t diroff)
 	return TIFFReadCustomDirectory(tif, diroff, exifFieldArray);  
 }
 
-/*
- *--: EXIF-GPS custom directory reading as another special case of custom IFD.
- */
 int
 TIFFReadGPSDirectory(TIFF* tif, toff_t diroff)
 {

@@ -91,7 +91,7 @@ Library changes
 
 * :file:`tif_fax3.c`: fix leak of ``FAXCS`` state (per bug :bugzilla-rs:`1603`).
 
-* :file:`tif_fax3.c`: Make :c:func:`find0span` and :c:func:`find1span` non-inline
+* :file:`tif_fax3.c`: Make ``find0span()`` and ``find1span()`` non-inline
   to make MSVC 6.0 compiler happy.
 
 * :file:`tif_codec.c`: Avoid :c:macro:`NULL` pointer dereferencing for exotic
@@ -189,8 +189,8 @@ Tools changes
 * :file:`tools/tiff2ps.c`: Remove spurious message printed to
   ``stderr``.
 
-* :file:`tools/tiffsplit.c`: fix ``sampleformat`` to be :c:type:`shortv` instead
-  of :c:type:`longv`.
+* :file:`tools/tiffsplit.c`: fix ``sampleformat`` to be ``shortv`` instead
+  of ``longv``.
 
 * :file:`tools/rgb2ycbcr.c`, :file:`tools/tiff2rgba.c`: Applied patch for
   :cve:`2009-2347` libtiff: integer overflows in various

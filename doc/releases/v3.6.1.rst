@@ -127,7 +127,7 @@ Contributed software changes
 ----------------------------
 
 * :file:`contrib/pds/tif_pdsdirread.c`, :file:`contrib/pds/tif_pdsdirwrite.c`:
-  Use :c:func:`TIFFDataWidth` function instead of :c:var:`tiffDataWidth` array.
+  Use :c:func:`TIFFDataWidth` function instead of ``tiffDataWidth[]`` array.
 
 LZW compression kit changes
 ---------------------------

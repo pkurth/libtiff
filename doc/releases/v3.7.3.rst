@@ -70,7 +70,7 @@ Library changes
 * :file:`tif_jpeg.c`: Cleanup the codec state depending on :c:macro:`TIFF_CODERSETUP`
   flag (to fix memory leaks).
 
-* :file:`tif_dirwrite.c`: Use :c:member:`tdir_count` when calling
+* :file:`tif_dirwrite.c`: Use ``tdir_count`` when calling
   :c:func:`TIFFCvtNativeToIEEEDouble` in the :c:func:`TIFFWriteDoubleArray` function as
   per bug :bugzilla-rs:`845`
 

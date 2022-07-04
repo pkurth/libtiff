@@ -525,18 +525,12 @@ TIFFSetFileName(TIFF* tif, const char *name)
 	return (old_name);
 }
 
-/*
- * Return open file's I/O descriptor.
- */
 int
 TIFFFileno(TIFF* tif)
 {
 	return (tif->tif_fd);
 }
 
-/*
- * Set open file's I/O descriptor, and return previous value.
- */
 int
 TIFFSetFileno(TIFF* tif, int fd)
 {
@@ -545,18 +539,12 @@ TIFFSetFileno(TIFF* tif, int fd)
 	return old_fd;
 }
 
-/*
- * Return open file's clientdata.
- */
 thandle_t
 TIFFClientdata(TIFF* tif)
 {
 	return (tif->tif_clientdata);
 }
 
-/*
- * Set open file's clientdata, and return previous value.
- */
 thandle_t
 TIFFSetClientdata(TIFF* tif, thandle_t newvalue)
 {
@@ -565,18 +553,12 @@ TIFFSetClientdata(TIFF* tif, thandle_t newvalue)
 	return m;
 }
 
-/*
- * Return read/write mode.
- */
 int
 TIFFGetMode(TIFF* tif)
 {
 	return (tif->tif_mode);
 }
 
-/*
- * Return read/write mode.
- */
 int
 TIFFSetMode(TIFF* tif, int mode)
 {
@@ -585,73 +567,48 @@ TIFFSetMode(TIFF* tif, int mode)
 	return (old_mode);
 }
 
-/*
- * Return nonzero if file is organized in
- * tiles; zero if organized as strips.
- */
 int
 TIFFIsTiled(TIFF* tif)
 {
 	return (isTiled(tif));
 }
 
-/*
- * Return current row being read/written.
- */
 uint32_t
 TIFFCurrentRow(TIFF* tif)
 {
 	return (tif->tif_row);
 }
 
-/*
- * Return index of the current directory.
- */
 uint16_t
 TIFFCurrentDirectory(TIFF* tif)
 {
 	return (tif->tif_curdir);
 }
 
-/*
- * Return current strip.
- */
 uint32_t
 TIFFCurrentStrip(TIFF* tif)
 {
 	return (tif->tif_curstrip);
 }
 
-/*
- * Return current tile.
- */
 uint32_t
 TIFFCurrentTile(TIFF* tif)
 {
 	return (tif->tif_curtile);
 }
 
-/*
- * Return nonzero if the file has byte-swapped data.
- */
 int
 TIFFIsByteSwapped(TIFF* tif)
 {
 	return ((tif->tif_flags & TIFF_SWAB) != 0);
 }
 
-/*
- * Return nonzero if the data is returned up-sampled.
- */
 int
 TIFFIsUpSampled(TIFF* tif)
 {
 	return (isUpSampled(tif));
 }
 
-/*
- * Return nonzero if the data is returned in MSB-to-LSB bit order.
- */
 int
 TIFFIsMSB2LSB(TIFF* tif)
 {
@@ -676,63 +633,42 @@ TIFFIsBigTIFF(TIFF *tif)
 	return (tif->tif_header.common.tiff_version == TIFF_VERSION_BIG);
 }
 
-/*
- * Return pointer to file read method.
- */
 TIFFReadWriteProc
 TIFFGetReadProc(TIFF* tif)
 {
 	return (tif->tif_readproc);
 }
 
-/*
- * Return pointer to file write method.
- */
 TIFFReadWriteProc
 TIFFGetWriteProc(TIFF* tif)
 {
 	return (tif->tif_writeproc);
 }
 
-/*
- * Return pointer to file seek method.
- */
 TIFFSeekProc
 TIFFGetSeekProc(TIFF* tif)
 {
 	return (tif->tif_seekproc);
 }
 
-/*
- * Return pointer to file close method.
- */
 TIFFCloseProc
 TIFFGetCloseProc(TIFF* tif)
 {
 	return (tif->tif_closeproc);
 }
 
-/*
- * Return pointer to file size requesting method.
- */
 TIFFSizeProc
 TIFFGetSizeProc(TIFF* tif)
 {
 	return (tif->tif_sizeproc);
 }
 
-/*
- * Return pointer to memory mapping method.
- */
 TIFFMapFileProc
 TIFFGetMapFileProc(TIFF* tif)
 {
 	return (tif->tif_mapproc);
 }
 
-/*
- * Return pointer to memory unmapping method.
- */
 TIFFUnmapFileProc
 TIFFGetUnmapFileProc(TIFF* tif)
 {

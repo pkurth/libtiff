@@ -26,9 +26,36 @@
 
 cmake_minimum_required(VERSION 3.2.0)
 
+include(Doxygen)
 include(Sphinx)
 
-if (BUILD_SPHINX AND SPHINX_BUILD)
+if (BUILD_DOXYGEN AND BUILD_SPHINX AND SPHINX_BUILD)
+  # Build doxygen documentation
+
+  if(BUILD_DOXYGEN)
+    set(DOXYGEN_LOG "${CMAKE_CURRENT_BINARY_DIR}/libtiff.log")
+    set(DOXYGEN_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/doxygen")
+    set(DOXYGEN_OUTPUT_DIR_XML "${CMAKE_CURRENT_BINARY_DIR}/doxygen-xml")
+    set(DOXYFILE ${CMAKE_CURRENT_BINARY_DIR}/libtiff.dox)
+    set(DOXYFILE_TEMPLATE ${CMAKE_CURRENT_SOURCE_DIR}/libtiff.dox.in)
+
+    configure_file(${DOXYFILE_TEMPLATE} ${DOXYFILE} @ONLY)
+
+    add_custom_command(OUTPUT ${DOXYGEN_LOG}
+            COMMAND ${CMAKE_COMMAND} -E remove_directory ${DOXYGEN_OUTPUT_DIR}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${DOXYGEN_OUTPUT_DIR}
+            COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE}
+            DEPENDS ${DOXYFILE} ${DOC_DEPENDENCIES}
+            COMMENT "Building Doxygen documentation")
+
+    add_custom_target(doc-check
+            COMMAND ${CMAKE_COMMAND} -Dlogfile=${DOXYGEN_LOG} -P ${PROJECT_SOURCE_DIR}/cmake/DoxygenChecks.cmake
+            DEPENDS ${DOXYGEN_LOG}
+            COMMENT "Checking for doxygen errors")
+
+    add_custom_target(doc-api ALL DEPENDS ${DOXYGEN_LOG} doc-check)
+  endif(BUILD_DOXYGEN)
+
   # Re-run CMake when the Sphinx configuration is updated
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/conf.py")
 
@@ -53,12 +80,13 @@ if (BUILD_SPHINX AND SPHINX_BUILD)
                        COMMAND ${SPHINX_BUILD}
                                -D "release=${LIBTIFF_VERSION_FULL}"
                                -D "version=${tiff_VERSION_MAJOR}.${tiff_VERSION_MINOR}"
+                               -D "breathe_projects.libtiff=${sphinx_builddir}/doxygen-xml"
                                -d "${sphinx_builddir}/cache"
                                 ${SPHINX_STRICT_OPTIONS}
                                -b man
                                "${sphinx_srcdir}" "${sphinx_builddir}/man"
                        WORKING_DIRECTORY "${sphinx_srcdir}"
-                       DEPENDS ${MAN_PAGE_DEPENDENCIES})
+                       DEPENDS doc-api ${SPHINX_DEPENDENCIES} ${MAN_PAGE_DEPENDENCIES})
 
     if(NOT TARGET doc-man)
       add_custom_target(doc-man ALL)
@@ -84,6 +112,7 @@ if (BUILD_SPHINX AND SPHINX_BUILD)
                      COMMAND ${SPHINX_BUILD}
                              -D "release=${tiff_VERSION}"
                              -D "version=${tiff_VERSION_MAJOR}.${tiff_VERSION_MINOR}"
+                             -D "breathe_projects.libtiff=${sphinx_builddir}/doxygen-xml"
                              -d "${sphinx_builddir}/cache"
                              ${SPHINX_STRICT_OPTIONS}
                              -b html

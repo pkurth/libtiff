@@ -51,7 +51,7 @@ This caused no end of bug reports!
 The new approach is for libtiff to read all tags from TIFF files.  Those that
 aren't recognised as "core tags" (those having an associated ``FIELD_`` value, 
 and place for storage in the :c:struct:`TIFFDirectory` structure) are now read into a 
-dynamic list of extra tags (:c:member:`td_customValues` in :c:struct:`TIFFDirectory`).  When a new
+dynamic list of extra tags (``td_customValues`` in :c:struct:`TIFFDirectory`).  When a new
 tag code is encountered for the first time in a given TIFF file, a new 
 anonymous tag definition is created for the tag in the tag definition list. 
 The type, and some other metadata is worked out from the instance encountered.
@@ -133,7 +133,7 @@ Library changes
 * :file:`libtiff/tif_lzw.c`: fixed so that decoder state isn't allocated till
   :c:func:`LZWSetupDecode`.  Needed to read LZW files in "``r+``" mode.
   
-* :file:`libtiff/tif_dir.c`: fixed up the :c:member:`tif_postdecode` settings responsible
+* :file:`libtiff/tif_dir.c`: fixed up the ``tif_postdecode`` settings responsible
   for byte swapping complex image data.
   
 * :file:`libtiff/tif_open.c`: Removed error if opening a compressed file
@@ -175,11 +175,11 @@ Library changes
   Hacked :file:`tif_jpeg.c` to fetch :c:macro:`TIFFTAG_YCBCRSUBSAMPLING` from the jpeg
   data stream if it isn't present in the tiff tags as per bug :bugzilla-rs:`168`.
 
-* :file:`libtiff/tif_jpeg.c`: Fixed problem with setting of :c:var:`nrows` in
+* :file:`libtiff/tif_jpeg.c`: Fixed problem with setting of ``nrows`` in
   :c:func:`JPEGDecode` as per bug :bugzilla-rs:`129`.
 
 * :file:`libtiff/tif_read.c`, :file:`libtiff/tif_write.c`: :c:func:`TIFFReadScanline` and
-  :c:func:`TIFFWriteScanline` now set :c:member:`tif_row` explicitly in case the codec has
+  :c:func:`TIFFWriteScanline` now set ``tif_row`` explicitly in case the codec has
   fooled with the value as per bug :bugzilla-rs:`129`.
 
 * :file:`libtiff/tif_ojpeg.c`: Major upgrade from Scott.  Details in bug :bugzilla-rs:`156`.
@@ -202,7 +202,7 @@ Library changes
   for correct handling of unconfigured codecs (we should not try to read
   data or to define data size without correct codecs). See bug :bugzilla-rs:`119`.
 
-* :file:`tif_dirread.c`: avoid div-by-zero if :c:var:`rowbytes` is zero in chop func as
+* :file:`tif_dirread.c`: avoid div-by-zero if ``rowbytes`` is zero in chop func as
   per bug :bugzilla-rs:`111`.
 
 * :file:`libtiff/tiff.h`, :file:`libtiff/tif_dir.c`, :file:`libtiff/tif_dir.h`,
@@ -221,7 +221,7 @@ Library changes
 * :file:`libtiff/tif_dir.c`, :file:`libtiff/tif_dir.h`, :file:`libtiff/tif_dirinfo.c`,
   :file:`libtiff/tif_dirread.c`, :file:`libtiff/tif_dirwrite.c`:
   Added routine :c:func:`TIFFDataWidth` for determining
-  :c:enum:`TIFFDataType` sizes instead of working with :c:var:`tiffDataWidth` array
+  :c:enum:`TIFFDataType` sizes instead of working with ``tiffDataWidth`` array
   directly as per bug :bugzilla-rs:`109`.
 
 * :file:`libtiff/tif_dirinfo.c`, :file:`libtiff/tif_dirwrite.c`: Added possibility to
@@ -236,7 +236,7 @@ Library changes
   decodestrip function returns anything not greater than zero as per bug
   :bugzilla-rs:`97`.
 
-* :file:`libtiff/tif_jpeg.c`: fixed computation of :c:var:`segment_width` for
+* :file:`libtiff/tif_jpeg.c`: fixed computation of ``segment_width`` for
   tiled files to avoid error about it not matching the
   ``cinfo.d.image_width`` values ("JPEGPreDecode: Improper JPEG strip/tile
   size.") for ITIFF files.  Apparently the problem was incorporated since

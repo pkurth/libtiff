@@ -135,9 +135,6 @@ TIFFNumberOfTiles(TIFF* tif)
 	return (ntiles);
 }
 
-/*
- * Compute the # bytes in each row of a tile.
- */
 uint64_t
 TIFFTileRowSize64(TIFF* tif)
 {
@@ -245,9 +242,6 @@ TIFFVTileSize(TIFF* tif, uint32_t nrows)
 	return _TIFFCastUInt64ToSSize(tif, m, module);
 }
 
-/*
- * Compute the # bytes in a row-aligned tile.
- */
 uint64_t
 TIFFTileSize64(TIFF* tif)
 {
@@ -262,12 +256,6 @@ TIFFTileSize(TIFF* tif)
 	return _TIFFCastUInt64ToSSize(tif, m, module);
 }
 
-/*
- * Compute a default tile size based on the image
- * characteristics and a requested value.  If a
- * request is <1 then we choose a size according
- * to certain heuristics.
- */
 void
 TIFFDefaultTileSize(TIFF* tif, uint32_t* tw, uint32_t* th)
 {

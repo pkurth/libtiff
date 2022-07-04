@@ -44,7 +44,7 @@ Library changes
 * Preliminary support for BigTIFF files: now libtiff can
   recognize and reject to open such images. ;-)
 
-* :file:`libtiff/tif_dir.c`: Initialize :c:member:`td_tilewidth` and :c:member:`td_tilelength` fields
+* :file:`libtiff/tif_dir.c`: Initialize ``td_tilewidth`` and ``td_tilelength`` fields
   of the :c:struct:`TIFFDirectory` structure with the 0 instead of -1 to avoid
   confusing integer overflows in :c:func:`TIFFTileRowSize` for striped images.
 
@@ -59,7 +59,7 @@ Library changes
 Tools changes
 -------------
 
-* :file:`tiffcmp.c` (:c:func:`leof`): Renamed from "``eof``" in order to avoid
+* :file:`tiffcmp.c` (``leof()``): Renamed from ``eof()`` in order to avoid
   conflict noticed under MinGW.
 
 * :file:`tiff2pdf.c`: Fixed ``TransferFunction`` tag handling reported

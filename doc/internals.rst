@@ -342,6 +342,10 @@ C library integer types, above:
 
     Obsolete type.  Use :c:type:`uint64_t`.
 
+.. c:type:: dblparam_t
+
+    Obsolete type.  Use :c:expr:`double`.
+
 The following C types and functions are used from the standard library:
 
 .. c:type:: FILE
@@ -404,6 +408,10 @@ The following C types and functions are used from the standard library:
 
     See `snprintf <https://en.cppreference.com/w/c/io/fprintf>`_
 
+.. c:function:: int fscanf(FILE *stream, const char *format, ...)
+
+   See `fscanf <https://en.cppreference.com/w/c/io/fscanf>`_
+
 .. c:function:: double pow(double base, double exponent)
 
     See `pow <https://en.cppreference.com/w/c/numeric/math/pow>`_
@@ -453,6 +461,10 @@ The following POSIX types and functions are used from the standard library:
 .. c:function:: int munmap(void *addr, size_t len)
 
     See `munmap <https://pubs.opengroup.org/onlinepubs/9699919799/functions/munmap.html>`_
+
+.. c:function:: void *lfind(const void *key, const void *base, size_t *nelp, size_t width, int (*compar)(const void *, const void *))
+
+   See `lfind <https://pubs.opengroup.org/onlinepubs/9699919799/functions/lfind.html>`_
 
 The following Windows types and functions are used from the C runtime:
 

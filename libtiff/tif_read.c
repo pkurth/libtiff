@@ -1260,15 +1260,6 @@ TIFFFillTile(TIFF* tif, uint32_t tile)
 	return (TIFFStartTile(tif, tile));
 }
 
-/*
- * Setup the raw data buffer in preparation for
- * reading a strip of raw data.  If the buffer
- * is specified as zero, then a buffer of appropriate
- * size is allocated by the library.  Otherwise,
- * the client must guarantee that the buffer is
- * large enough to hold any individual strip of
- * raw data.
- */
 int
 TIFFReadBufferSetup(TIFF* tif, void* bp, tmsize_t size)
 {

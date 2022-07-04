@@ -55,85 +55,11 @@ fields are defined differently on a per-sample basis
 ``Compression``
 tag is not defined on a per-sample basis, so this is immaterial).
 
-.. _public-data-types:
-
-Data types
-----------
-
-The library makes extensive use of C typedefs to promote portability.
-Two sets of typedefs are used, one for communication with clients
-of the library and one for internal data structures and parsing of the
-TIFF format.  The following typedefs are exposed to users either through
-function definitions or through parameters passed through the varargs
-interfaces.
-
-.. highlight:: c
-
-.. c:type:: uint32_t ttag_t
-
-    directory tag
-
-.. c:type:: uint16_t tdir_t
-
-    directory index
-
-.. c:type:: uint16_t tsample_t
-
-    sample number
-
-.. c:type:: uint32_t tstrip_t
-
-    strip number
-
-.. c:type:: uint32_t ttile_t
-
-    tile number
-
-.. c:type:: int64_t tmsize_t
-
-    signed size type (int32_t on 32-bit platforms)
-
-.. c:type:: tmsize_t tsize_t
-
-    i/o size in bytes
-
-.. c:type:: void* tdata_t
-
-    image data ref
-
-.. c:type:: void* thandle_t
-
-    client data handle
-
-.. c:type:: uint64_t toff_t
-
-    file offset (should be :c:type:`off_t`)
-
-Note that :c:type:`tstrip_t`, :c:type:`ttile_t`, and :c:type:`tsize_t`
-are constrained to be no more than 32-bit quantities by 32-bit fields
-they are stored in in the TIFF image.  Likewise :c:type:`tsample_t` is
-limited by the 16-bit field used to store the ``SamplesPerPixel`` tag.
-:c:type:`tdir_t` constrains the maximum number of IFDs that may appear
-in an image and may be an arbitrary size (w/o penalty).  :c:type:`ttag_t`
-must be either :c:expr:`int`, :c:expr:`int`unsigned int`, pointer, or
-:c:expr:`int`double`, because the library uses a varargs interface and
-C restricts the type of the parameter before an ellipsis to be a
-promoted type.  :c:type:`toff_t`  is defined as :c:type:`uint64_t`
-because TIFF file offsets are (unsigned) 32-bit quantities, and BigTIFF
-file offsets are unsigned 64-bit quantities.  A signed value is used
-because some interfaces return -1 on error. Finally, note that
-user-specified data references are passed as opaque handles and only
-cast at the lowest layers where their type is presumed.
-
-.. TODO: Check why this toff_t was switched to unsigned and update description.
 
 
-Structures
-----------
 
-.. c:struct:: TIFF
 
-  An opaque data type representing an open TIFF file.
+
 
 List of routines
 ----------------
@@ -908,6 +834,7 @@ Warning messages are likewise directed through the
 See also
 --------
 
+:doc:`TIFFtypes`,
 :doc:`/tools/fax2tiff`,
 :doc:`/tools/pal2rgb`,
 :doc:`/tools/ppm2tiff`,

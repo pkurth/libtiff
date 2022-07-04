@@ -18,9 +18,6 @@
 # Substitutions from external build system.
 srcdir = None
 builddir = None
-ext_source_branch = None
-ext_source_user = None
-
 
 # -- Project information -----------------------------------------------------
 
@@ -39,8 +36,14 @@ version = 'UNDEFINED'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.extlinks'
+    'sphinx.ext.extlinks',
+    'breathe'
 ]
+
+# Breathe projects used to read Doxygen XML
+breathe_projects = dict()
+breathe_default_project = "libtiff"
+breathe_domain_by_extension = { "h" : "c" }
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -149,6 +152,7 @@ man_pages = [
     ('functions/TIFFstrip', 'TIFFstrip', 'strip-related utility routines', author, '3tiff'),
     ('functions/TIFFswab', 'TIFFswab', 'byte- and bit-swapping routines', author, '3tiff'),
     ('functions/TIFFtile', 'TIFFtile', 'tile-related utility routines', author, '3tiff'),
+    ('functions/TIFFtypes', 'TIFFtypes', 'data types used by LibTIFF', author, '3tiff'),
     ('functions/TIFFWarning', 'TIFFWarning', 'library warning interface', author, '3tiff'),
     ('functions/TIFFWriteDirectory', 'TIFFWriteDirectory', 'write the current directory in an open TIFF file', author, '3tiff'),
     ('functions/TIFFWriteEncodedStrip', 'TIFFWriteEncodedStrip', 'compress and write a strip of data to an open TIFF file', author, '3tiff'),

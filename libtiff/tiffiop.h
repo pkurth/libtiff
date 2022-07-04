@@ -62,10 +62,15 @@
 #define	FALSE	0
 #endif
 
+/**
+ * @brief Link to client-provided data, referenced by name
+ * @note The referenced data is not owned by LibTIFF;
+ * the client has responsibility for managing its lifetime.
+ */
 typedef struct client_info {
-    struct client_info *next;
-    void *data;
-    char *name;
+    struct client_info *next; /**< Pointer to the next member */
+    void *data; /**< Pointer to client data */
+    char *name; /**< Name of client data value */
 } TIFFClientInfoLink;
 
 /*

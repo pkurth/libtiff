@@ -1272,10 +1272,6 @@ _TIFFVGetField(TIFF* tif, uint32_t tag, va_list ap)
 	return(ret_val);
 }
 
-/*
- * Return the value of a field in the
- * internal directory structure.
- */
 int
 TIFFGetField(TIFF* tif, uint32_t tag, ...)
 {
@@ -1288,12 +1284,6 @@ TIFFGetField(TIFF* tif, uint32_t tag, ...)
 	return (status);
 }
 
-/*
- * Like TIFFGetField, but taking a varargs
- * parameter list.  This routine is useful
- * for building higher-level interfaces on
- * top of the library.
- */
 int
 TIFFVGetField(TIFF* tif, uint32_t tag, va_list ap)
 {
@@ -1309,9 +1299,6 @@ TIFFVGetField(TIFF* tif, uint32_t tag, va_list ap)
     }					\
 }
 
-/*
- * Release storage associated with a directory.
- */
 void
 TIFFFreeDirectory(TIFF* tif)
 {
@@ -1364,13 +1351,6 @@ TIFFSetTagExtender(TIFFExtendProc extender)
 	return (prev);
 }
 
-/*
- * Setup for a new directory.  Should we automatically call
- * TIFFWriteDirectory() if the current one is dirty?
- *
- * The newly created directory will not exist on the file till
- * TIFFWriteDirectory(), TIFFFlush() or TIFFClose() is called.
- */
 int
 TIFFCreateDirectory(TIFF* tif)
 {
@@ -1413,9 +1393,6 @@ TIFFCreateEXIFDirectory(TIFF* tif)
 	return TIFFCreateCustomDirectory(tif, exifFieldArray);
 }
 
-/*
- * Creates the EXIF GPS custom directory 
- */
 int
 TIFFCreateGPSDirectory(TIFF* tif)
 {
@@ -1638,9 +1615,6 @@ TIFFAdvanceDirectory(TIFF* tif, uint64_t* nextdir, uint64_t* off)
 	}
 }
 
-/*
- * Count the number of directories in a file.
- */
 uint16_t
 TIFFNumberOfDirectories(TIFF* tif)
 {
@@ -1668,10 +1642,7 @@ TIFFNumberOfDirectories(TIFF* tif)
 	return (n);
 }
 
-/*
- * Set the n-th directory as the current directory.
- * NB: Directories are numbered starting at 0.
- */
+
 int
 TIFFSetDirectory(TIFF* tif, uint16_t dirn)
 {
@@ -1700,12 +1671,6 @@ TIFFSetDirectory(TIFF* tif, uint16_t dirn)
 	return (TIFFReadDirectory(tif));
 }
 
-/*
- * Set the current directory to be the directory
- * located at the specified file offset.  This interface
- * is used mainly to access directories linked with
- * the SubIFD tag (e.g. thumbnail images).
- */
 int
 TIFFSetSubDirectory(TIFF* tif, uint64_t diroff)
 {
@@ -1718,19 +1683,12 @@ TIFFSetSubDirectory(TIFF* tif, uint64_t diroff)
 	return (TIFFReadDirectory(tif));
 }
 
-/*
- * Return file offset of the current directory.
- */
 uint64_t
 TIFFCurrentDirOffset(TIFF* tif)
 {
 	return (tif->tif_diroff);
 }
 
-/*
- * Return an indication of whether or not we are
- * at the last directory in the file.
- */
 int
 TIFFLastDirectory(TIFF* tif)
 {

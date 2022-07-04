@@ -44,6 +44,7 @@ TIFF Functions Overview
     functions/TIFFstrip
     functions/TIFFswab
     functions/TIFFtile
+    functions/TIFFtypes
     functions/TIFFWarning
     functions/TIFFWriteDirectory
     functions/TIFFWriteEncodedStrip

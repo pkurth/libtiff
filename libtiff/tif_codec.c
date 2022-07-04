@@ -80,8 +80,8 @@ static int NotConfigured(TIFF*, int);
 #define TIFFInitWebP NotConfigured
 #endif
 
-/*
- * Compression schemes statically built into the library.
+/**
+ * @brief Built-in compression schemes.
  */
 const TIFFCodec _TIFFBuiltinCODECS[] = {
     { "None",		COMPRESSION_NONE,	TIFFInitDumpMode },
@@ -133,17 +133,6 @@ NotConfigured(TIFF* tif, int scheme)
 	tif->tif_setupencode = _notConfigured;
 	return (1);
 }
-
-/************************************************************************/
-/*                       TIFFIsCODECConfigured()                        */
-/************************************************************************/
-
-/**
- * Check whether we have working codec for the specific coding scheme.
- *
- * @return returns 1 if the codec is configured and working. Otherwise
- * 0 will be returned.
- */
 
 int
 TIFFIsCODECConfigured(uint16_t scheme)

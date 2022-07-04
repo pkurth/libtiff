@@ -10,23 +10,35 @@ Synopsis
 
     #include <tiffio.h>
 
-.. c:function:: TIFF* TIFFOpen(const char* filename, const char* mode)
+.. doxygenfunction:: TIFFOpen
+    :outline:
 
 .. c:function:: TIFF* TIFFFdOpen(const int fd, const char* filename, const char*mode)
 
-.. c:type:: tsize_t (*TIFFReadWriteProc)(thandle_t, tdata_t, tsize_t)
-.. c:type:: toff_t (*TIFFSeekProc)(thandle_t, toff_t, int)
-.. c:type:: int (*TIFFCloseProc)(thandle_t)
-.. c:type:: toff_t (*TIFFSizeProc)(thandle_t)
-.. c:type:: int (*TIFFMapFileProc)(thandle_t, tdata_t*, toff_t*)
-.. c:type:: void (*TIFFUnmapFileProc)(thandle_t, tdata_t, toff_t)
+.. doxygentypedef:: TIFFReadWriteProc
+    :outline:
+
+.. doxygentypedef:: TIFFSeekProc
+    :outline:
+
+.. doxygentypedef:: TIFFCloseProc
+    :outline:
+
+.. doxygentypedef:: TIFFSizeProc
+    :outline:
+
+.. doxygentypedef:: TIFFMapFileProc
+    :outline:
+
+.. doxygentypedef:: TIFFUnmapFileProc
+    :outline:
 
 .. c:function:: TIFF* TIFFClientOpen(const char* filename, const char* mode, thandle_t clientdata, TIFFReadWriteProc readproc, TIFFReadWriteProc writeproc, TIFFSeekProc seekproc, TIFFCloseProc closeproc, TIFFSizeProc sizeproc, TIFFMapFileProc mapproc, TIFFUnmapFileProc unmapproc)
 
 Description
 -----------
 
-:c:func:`TIFFOpen` opens a TIFF file whose name is *filename*
+:c:func:`TIFFOpen()` opens a TIFF file whose name is *filename*
 and returns a handle to be used in subsequent calls to routines in
 :program:`libtiff`.  If the open operation fails, then
 :c:macro:`NULL` (0) is returned.  The *mode* parameter specifies if
@@ -65,7 +77,10 @@ The object associated with the file descriptor **must support random access**.
 
 :c:func:`TIFFClientOpen` is like :c:func:`TIFFOpen` except that the caller
 supplies a collection of functions that the library will use to do UNIX-like
-I/O operations.  The *readproc* and *writeproc* functions are called to read
+I/O operations:
+
+
+The *readproc* and *writeproc* functions are called to read
 and write data at the current file position.
 *seekproc* is called to change the current file position à la :c:func:`lseek` (2).
 *closeproc* is invoked to release any resources associated with an open file.
@@ -248,3 +263,4 @@ See also
 
 :doc:`libtiff` (3tiff),
 :doc:`TIFFClose` (3tiff)
+:doc:`TIFFtypes` (3tiff)

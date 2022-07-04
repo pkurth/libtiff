@@ -565,12 +565,6 @@ TIFFSetupStrips(TIFF* tif)
 }
 #undef isUnspecified
 
-/*
- * Verify file is writable and that the directory
- * information is setup properly.  In doing the latter
- * we also "freeze" the state of the directory so
- * that important information is not changed.
- */
 int
 TIFFWriteCheck(TIFF* tif, int tiles, const char* module)
 {

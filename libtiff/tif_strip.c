@@ -69,9 +69,6 @@ TIFFNumberOfStrips(TIFF* tif)
 	return (nstrips);
 }
 
-/*
- * Compute the # bytes in a variable height, row-aligned strip.
- */
 uint64_t
 TIFFVStripSize64(TIFF* tif, uint32_t nrows)
 {
@@ -133,9 +130,6 @@ TIFFVStripSize(TIFF* tif, uint32_t nrows)
         return _TIFFCastUInt64ToSSize(tif, m, module);
 }
 
-/*
- * Compute the # bytes in a raw strip.
- */
 uint64_t
 TIFFRawStripSize64(TIFF* tif, uint32_t strip)
 {
@@ -174,14 +168,6 @@ TIFFRawStripSize(TIFF* tif, uint32_t strip)
 	return(n);
 }
 
-/*
- * Compute the # bytes in a (row-aligned) strip.
- *
- * Note that if RowsPerStrip is larger than the
- * recorded ImageLength, then the strip size is
- * truncated to reflect the actual space required
- * to hold the strip.
- */
 uint64_t
 TIFFStripSize64(TIFF* tif)
 {
@@ -200,12 +186,6 @@ TIFFStripSize(TIFF* tif)
 	return _TIFFCastUInt64ToSSize(tif, m, module);
 }
 
-/*
- * Compute a default strip size based on the image
- * characteristics and a requested value.  If the
- * request is <1 then we choose a strip size according
- * to certain heuristics.
- */
 uint32_t
 TIFFDefaultStripSize(TIFF* tif, uint32_t request)
 {
@@ -236,16 +216,6 @@ _TIFFDefaultStripSize(TIFF* tif, uint32_t s)
 	return (s);
 }
 
-/*
- * Return the number of bytes to read/write in a call to
- * one of the scanline-oriented i/o routines.  Note that
- * this number may be 1/samples-per-pixel if data is
- * stored as separate planes.
- * The ScanlineSize in case of YCbCrSubsampling is defined as the
- * strip size divided by the strip height, i.e. the size of a pack of vertical
- * subsampling lines divided by vertical subsampling. It should thus make
- * sense when multiplied by a multiple of vertical subsampling.
- */
 uint64_t
 TIFFScanlineSize64(TIFF* tif)
 {
@@ -303,6 +273,7 @@ TIFFScanlineSize64(TIFF* tif)
         }
 	return(scanline_size);
 }
+
 tmsize_t
 TIFFScanlineSize(TIFF* tif)
 {
@@ -312,12 +283,6 @@ TIFFScanlineSize(TIFF* tif)
 	return _TIFFCastUInt64ToSSize(tif, m, module);
 }
 
-/*
- * Return the number of bytes required to store a complete
- * decoded and packed raster scanline (as opposed to the
- * I/O size returned by TIFFScanlineSize which may be less
- * if data is store as separate planes).
- */
 uint64_t
 TIFFRasterScanlineSize64(TIFF* tif)
 {

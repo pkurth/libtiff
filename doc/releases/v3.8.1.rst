@@ -111,8 +111,8 @@ Tools changes
 * :file:`ppm2tiff.c`: Added support for PBM files as per bug
   :bugzilla-rs:`1044`
 
-* :file:`tiff2pdf.c`: Functions :c:func:`t2p_sample_rgbaa_to_rgb` and
-  :c:func:`t2p_sample_rgba_to_rgb` was used in place of each other, that was
+* :file:`tiff2pdf.c`: Functions ``t2p_sample_rgbaa_to_rgb()`` and
+  ``t2p_sample_rgba_to_rgb()`` were used in place of each other, that was
   resulted in problems with RGBA images with associated alpha.
   As per bug
   :bugzilla-rs:`1097`

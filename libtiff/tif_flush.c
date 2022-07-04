@@ -142,15 +142,6 @@ int TIFFForceStrileArrayWriting(TIFF* tif)
     return 0;
 }
 
-/*
- * Flush buffered data to the file.
- *
- * Frank Warmerdam'2000: I modified this to return 1 if TIFF_BEENWRITING
- * is not set, so that TIFFFlush() will proceed to write out the directory.
- * The documentation says returning 1 is an error indicator, but not having
- * been writing isn't exactly a an error.  Hopefully this doesn't cause
- * problems for other people. 
- */
 int
 TIFFFlushData(TIFF* tif)
 {

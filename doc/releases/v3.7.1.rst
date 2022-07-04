@@ -53,25 +53,21 @@ Library changes
   :bugzilla-rs:`713`
 
 * :file:`tif_getimage.c`: Support for multiple-alpha-channelled
-  RGB-images as per bug
-  :bugzilla-rs:`718`
+  RGB-images as per bug :bugzilla-rs:`718`
 
 * :file:`tif_getimage.c`: ``#define A1`` bracketing for clean build on
   SunPro compiler.
 
 * :file:`tif_dirwrite.c`: Always write :c:macro:`TIFFTAG_SUBIFD` using ``LONG`` type
-  as per bugs
-  :bugzilla-rs:`703` and
-  :bugzilla-rs:`704`.
+  as per bugs :bugzilla-rs:`703` and :bugzilla-rs:`704`.
 
-* :file:`tif_win32.c`: Use :c:expr:`char*` strings instead of :c:type:`TCHAR` in windowed
-  mode as per bug
-  :bugzilla-rs:`697`
+* :file:`tif_win32.c`: Use :c:expr:`char*` strings instead of ``TCHAR`` in windowed
+  mode as per bug :bugzilla-rs:`697`
 
 * :file:`tif_dir.c`, :file:`tif_dirread.c`: Remove :c:func:`TIFFReassignTagToIgnore`
   call from the :c:func:`TIFFReadDirectory` function. :c:func:`TIFFReassignTagToIgnore`
-  must be removed in the future, as it was never used properly. As per
-  bug :bugzilla-rs:`692`
+  must be removed in the future, as it was never used properly. As per bug
+  :bugzilla-rs:`692`
 
 * :file:`tif_jpeg.c`: Added a work-around in order to allow
   compilation with the heavily modified version of libjpeg delivered
@@ -115,8 +111,7 @@ Library changes
   :bugzilla-rs:`662`
 
 * :file:`tif_write.c`: Fixed wrong ``if()`` statement in
-  :c:func:`TIFFAppendToStrip` function as per bug
-  :bugzilla-rs:`660`
+  :c:func:`TIFFAppendToStrip` function as per bug :bugzilla-rs:`660`
 
 * :file:`tif_dirinfo.c`: Change definition for ``TIFFTAG_EXTRASAMPLES``
   field. The caller should supply a count when setting this field. As
