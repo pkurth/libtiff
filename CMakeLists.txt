@@ -39,25 +39,31 @@ message(STATUS "libtiff library version ${SO_VERSION}")
 string(TIMESTAMP BUILD_DATE "%Y%m%d")
 message(STATUS "libtiff build date: ${BUILD_DATE}")
 
+# Project definition
+set(CMAKE_C_STANDARD 99)
+project(tiff
+        VERSION "${LIBTIFF_VERSION}"
+        LANGUAGES C CXX)
 
-set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries")
+if(NOT CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+  # libtiff is being included as a subproject of some other project.
+  set(TIFF_INSTALL_DEFAULT OFF)
+else()
+  set(TIFF_INSTALL_DEFAULT ON)
+  option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+endif()
 
 option(tiff-tools "build TIFF tools" ON)
 option(tiff-tests "build TIFF tests" ON)
 option(tiff-contrib "build TIFF contrib" ON)
 option(tiff-docs "build TIFF documentation" ON)
 option(tiff-deprecated "build TIFF deprecated features" OFF)
+option(tiff-install "install TIFF targets" ${TIFF_INSTALL_DEFAULT})
 
 # Disable deprecated features to ensure clean build
 if (tiff-deprecated)
   add_definitions(-DTIFF_DISABLE_DEPRECATED)
 endif()
-
-# Project definition
-set(CMAKE_C_STANDARD 99)
-project(tiff
-        VERSION "${LIBTIFF_VERSION}"
-        LANGUAGES C CXX)
 
 # Autotools compatibility
 include(AutotoolsCompat)
@@ -137,11 +143,6 @@ find_package(CMath REQUIRED)
 # Release support
 include(Release)
 
-if(MSVC)
-    add_compile_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS)
-    add_compile_options(/wd4996)
-endif()
-
 # Process subdirectories
 add_subdirectory(port)
 add_subdirectory(libtiff)
@@ -156,7 +157,6 @@ if(tiff-contrib)
 endif()
 add_subdirectory(build)
 if(tiff-docs)
-  add_subdirectory(man)
   add_subdirectory(doc)
 endif()
 
@@ -206,7 +206,11 @@ if(JPEG_SUPPORT)
 else()
   message(STATUS "  Old JPEG support:                   Requested:${old-jpeg} Availability:${JPEG_SUPPORT} Support:${OJPEG_SUPPORT} (Depends on JPEG Support)")
 endif()
-message(STATUS "  JPEG 8/12 bit dual mode:            Requested:${jpeg12} Availability:${JPEG12_FOUND} Support:${JPEG_DUAL_MODE_8_12}")
+if(JPEG_SUPPORT AND HAVE_JPEGTURBO_DUAL_MODE_8_12)
+  message(STATUS "  JPEG 8/12 bit dual mode:            Support: yes (libjpeg turbo >= 2.2 dual mode)")
+else()
+  message(STATUS "  JPEG 8/12 bit dual mode:            Requested:${jpeg12} Availability:${JPEG12_FOUND} Support:${JPEG_DUAL_MODE_8_12}")
+endif()
 message(STATUS "  ISO JBIG support:                   Requested:${jbig} Availability:${JBIG_FOUND} Support:${JBIG_SUPPORT}")
 if(ZLIB_SUPPORT)
   message(STATUS "  LERC support:                       Requested:${lerc} Availability:${LERC_FOUND} Support:${LERC_SUPPORT}")

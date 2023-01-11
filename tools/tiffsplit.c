@@ -38,147 +38,182 @@
 #define EXIT_FAILURE 1
 #endif
 
-#define	CopyField(tag, v) \
-    if (TIFFGetField(in, tag, &v)) TIFFSetField(out, tag, v)
-#define	CopyField2(tag, v1, v2) \
-    if (TIFFGetField(in, tag, &v1, &v2)) TIFFSetField(out, tag, v1, v2)
-#define	CopyField3(tag, v1, v2, v3) \
-    if (TIFFGetField(in, tag, &v1, &v2, &v3)) TIFFSetField(out, tag, v1, v2, v3)
+#define CopyField(tag, v)                                                      \
+    if (TIFFGetField(in, tag, &v))                                             \
+    TIFFSetField(out, tag, v)
+#define CopyField2(tag, v1, v2)                                                \
+    if (TIFFGetField(in, tag, &v1, &v2))                                       \
+    TIFFSetField(out, tag, v1, v2)
+#define CopyField3(tag, v1, v2, v3)                                            \
+    if (TIFFGetField(in, tag, &v1, &v2, &v3))                                  \
+    TIFFSetField(out, tag, v1, v2, v3)
 
 #define PATH_LENGTH 8192
 
 #define DEFAULT_MAX_MALLOC (256 * 1024 * 1024)
 
- /* malloc size limit (in bytes)
-  * disabled when set to 0 */
+/* malloc size limit (in bytes)
+ * disabled when set to 0 */
 static tmsize_t maxMalloc = DEFAULT_MAX_MALLOC;
 
 static const char TIFF_SUFFIX[] = ".tif";
 
-static	char fname[PATH_LENGTH];
+static char fname[PATH_LENGTH];
 
-static	int tiffcp(TIFF*, TIFF*);
-static	void newfilename(void);
-static	int cpStrips(TIFF*, TIFF*);
-static	int cpTiles(TIFF*, TIFF*);
+static int tiffcp(TIFF *, TIFF *);
+static void newfilename(void);
+static int cpStrips(TIFF *, TIFF *);
+static int cpTiles(TIFF *, TIFF *);
 
-static	void usage(int);
+static void usage(int);
 
 #define	MAXFILES	9999999
 
 /**
  * This custom malloc function enforce a maximum allocation size
  */
-static void* limitMalloc(tmsize_t s)
+static void *limitMalloc(tmsize_t s)
 {
-	/* tmsize_t is signed and _TIFFmalloc() converts s to size_t. Therefore check for negative s. */
-	if (maxMalloc && ((s > maxMalloc) || (s < 0))) {
-		fprintf(stderr, "MemoryLimitError: allocation of %" TIFF_SSIZE_FORMAT " bytes is forbidden. Limit is %" TIFF_SSIZE_FORMAT ".\n",
-			s, maxMalloc);
-		fprintf(stderr, "                  use -M option to change limit.\n");
-		return NULL;
-	}
-	return _TIFFmalloc(s);
+    /* tmsize_t is signed and _TIFFmalloc() converts s to size_t. Therefore
+     * check for negative s. */
+    if (maxMalloc && ((s > maxMalloc) || (s < 0)))
+    {
+        fprintf(stderr,
+                "MemoryLimitError: allocation of %" TIFF_SSIZE_FORMAT
+                " bytes is forbidden. Limit is %" TIFF_SSIZE_FORMAT ".\n",
+                s, maxMalloc);
+        fprintf(stderr, "                  use -M option to change limit.\n");
+        return NULL;
+    }
+    return _TIFFmalloc(s);
 }
 
 
-static void* limitRealloc(void* buf, tmsize_t s)
+static void *limitRealloc(void *buf, tmsize_t s)
 {
-	if (maxMalloc && ((s > maxMalloc) || (s < 0))) {
-		fprintf(stderr, "MemoryLimitError: re-allocation of %" TIFF_SSIZE_FORMAT " bytes is forbidden. Limit is %" TIFF_SSIZE_FORMAT ".\n",
-			s, maxMalloc);
-		fprintf(stderr, "                  use -M option to change limit.\n");
-		if (buf != NULL) _TIFFfree(buf);
-		return NULL;
-	}
-	return _TIFFrealloc(buf, s);
+    if (maxMalloc && ((s > maxMalloc) || (s < 0)))
+    {
+        fprintf(stderr,
+                "MemoryLimitError: re-allocation of %" TIFF_SSIZE_FORMAT
+                " bytes is forbidden. Limit is %" TIFF_SSIZE_FORMAT ".\n",
+                s, maxMalloc);
+        fprintf(stderr, "                  use -M option to change limit.\n");
+        if (buf != NULL)
+            _TIFFfree(buf);
+        return NULL;
+    }
+    return _TIFFrealloc(buf, s);
 }
 
-
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-	TIFF *in, *out;
+    TIFF *in, *out;
 #if !HAVE_DECL_OPTARG
-	extern char* optarg;
-	extern int optind;
+    extern char *optarg;
+    extern int optind;
 #endif
-	int c;
 
-	while ((c = getopt(argc, argv, "M:")) != -1) {
-		switch (c) {
-			case 'M':
-				maxMalloc = (tmsize_t)strtoul(optarg, NULL, 0) << 20;
-				if ((maxMalloc == 0) && (optarg[0] != '0')) {
-					fprintf(stderr, "tiffsplit: Error: Option -M was not followed by a number but <%s>\n", optarg);
-					usage(EXIT_FAILURE);
-				}
-				break;
-			case '?':
-				usage(EXIT_SUCCESS);
-				break;
-			default:
-				break;
-		}
-	}
+    int c;
 
-	c = argc - optind;
-	if (c < 1 || c > 2) usage(EXIT_FAILURE);
-	if (c > 1) {
-		strncpy(fname, argv[optind + 1], sizeof(fname));
-		fname[sizeof(fname) - 1] = '\0';
-	}
+    while ((c = getopt(argc, argv, "M:")) != -1)
+    {
+        switch (c)
+        {
+            case 'M':
+                maxMalloc = (tmsize_t)strtoul(optarg, NULL, 0) << 20;
+                if ((maxMalloc == 0) && (optarg[0] != '0'))
+                {
+                    fprintf(stderr,
+                            "tiffsplit: Error: Option -M was not followed by a "
+                            "number but <%s>\n",
+                            optarg);
+                    usage(EXIT_FAILURE);
+                }
+                break;
+            case '?':
+                usage(EXIT_SUCCESS);
+                break;
+            default:
+                break;
+        }
+    }
 
-	in = TIFFOpen(argv[optind], "r");
-	if (in == NULL) {
-		fprintf(stderr, "tiffsplit: Error: Could not open %s \n", argv[optind]);
-		usage(EXIT_FAILURE);
-	}
+    c = argc - optind;
+    if (c < 1 || c > 2)
+        usage(EXIT_FAILURE);
+    if (c > 1)
+    {
+        strncpy(fname, argv[optind + 1], sizeof(fname));
+        fname[sizeof(fname) - 1] = '\0';
+    }
 
-	do {
-		size_t path_len;
-		char* path = NULL;
+    TIFFOpenOptions *opts = TIFFOpenOptionsAlloc();
+    if (opts == NULL)
+    {
+        return EXIT_FAILURE;
+    }
+    TIFFOpenOptionsSetMaxSingleMemAlloc(opts, maxMalloc);
+    in = TIFFOpenExt(argv[optind], "r", opts);
+    if (in == NULL)
+    {
+        fprintf(stderr, "tiffsplit: Error: Could not open %s \n", argv[optind]);
+        TIFFOpenOptionsFree(opts);
+        usage(EXIT_FAILURE);
+    }
 
-		newfilename();
+    do
+    {
+        size_t path_len;
+        char *path = NULL;
 
-		path_len = strlen(fname) + sizeof(TIFF_SUFFIX);
-		path = (char*)limitMalloc(path_len);
-		if (!path) {
-			fprintf(stderr, "tiffsplit: Error: Can't allocate %"TIFF_SSIZE_FORMAT" bytes for path-variable.\n", path_len);
-			TIFFClose(in);
-			return (EXIT_FAILURE);
-		}
-		strncpy(path, fname, path_len);
-		path[path_len - 1] = '\0';
-		strncat(path, TIFF_SUFFIX, path_len - strlen(path) - 1);
-		out = TIFFOpen(path, TIFFIsBigEndian(in) ? "wb" : "wl");
-        // Show File name
-        printf("%s.tif\n",fname);
+        newfilename();
 
-		if (out == NULL) {
-			TIFFClose(in);
-			fprintf(stderr, "tiffsplit: Error: Could not open output file %s \n", path);
-			_TIFFfree(path);
-			return (EXIT_FAILURE);
-		}
-		_TIFFfree(path);
-		if (!tiffcp(in, out)) {
-			TIFFClose(in);
-			TIFFClose(out);
-			fprintf(stderr, "tiffsplit: Error: Could not copy data from input to output.\n");
-			return (EXIT_FAILURE);
+        path_len = strlen(fname) + sizeof(TIFF_SUFFIX);
+        path = (char *)limitMalloc(path_len);
+        if (!path)
+        {
+            fprintf(stderr,
+                    "tiffsplit: Error: Can't allocate %" TIFF_SSIZE_FORMAT
+                    " bytes for path-variable.\n",
+                    path_len);
+            TIFFClose(in);
+            TIFFOpenOptionsFree(opts);
+            return (EXIT_FAILURE);
+        }
+        strncpy(path, fname, path_len);
+        path[path_len - 1] = '\0';
+        strncat(path, TIFF_SUFFIX, path_len - strlen(path) - 1);
+        out = TIFFOpenExt(path, TIFFIsBigEndian(in) ? "wb" : "wl", opts);
 
+        if (out == NULL)
+        {
+            TIFFClose(in);
+            fprintf(stderr,
+                    "tiffsplit: Error: Could not open output file %s \n", path);
+            _TIFFfree(path);
+            TIFFOpenOptionsFree(opts);
+            return (EXIT_FAILURE);
+        }
+        _TIFFfree(path);
+        if (!tiffcp(in, out))
+        {
+            TIFFClose(in);
+            TIFFClose(out);
+            TIFFOpenOptionsFree(opts);
+            fprintf(stderr, "tiffsplit: Error: Could not copy data from input "
+                            "to output.\n");
+            return (EXIT_FAILURE);
+        }
+        TIFFClose(out);
+    } while (TIFFReadDirectory(in));
 
-		}
-		TIFFClose(out);
-	} while (TIFFReadDirectory(in));
+    TIFFOpenOptionsFree(opts);
+    (void)TIFFClose(in);
 
-	(void)TIFFClose(in);
-
-	return (EXIT_SUCCESS);
+    return (EXIT_SUCCESS);
 }
 
-static void
-newfilename(void)
+static void newfilename(void)
 {
     static int first = 1;
     static long fnum;
@@ -206,14 +241,12 @@ newfilename(void)
         fname[0]++;
         fnum = 0;
     }
-
     //  Override 3 char naming Scheme and use frame Number next to file prefix
     fnum++;
     sprintf(fpnt,"%07ld",fnum);
 }
 
-static int
-tiffcp(TIFF* in, TIFF* out)
+static int tiffcp(TIFF *in, TIFF *out)
 {
     uint16_t bitspersample, samplesperpixel, compression, shortv, *shortav;
     uint32_t w, l;
@@ -232,8 +265,7 @@ tiffcp(TIFF* in, TIFF* out)
     if (compression == COMPRESSION_JPEG) {
         uint32_t count = 0;
         void *table = NULL;
-        if (TIFFGetField(in, TIFFTAG_JPEGTABLES, &count, &table)
-            && count > 0 && table) {
+        if (TIFFGetField(in, TIFFTAG_JPEGTABLES, &count, &table) && count > 0 && table) {
             TIFFSetField(out, TIFFTAG_JPEGTABLES, count, table);
         }
     }
@@ -288,47 +320,59 @@ tiffcp(TIFF* in, TIFF* out)
 
 }
 
-static int
-cpStrips(TIFF* in, TIFF* out)
+static int cpStrips(TIFF *in, TIFF *out)
 {
-	tmsize_t bufsize = TIFFStripSize(in);
-	unsigned char* buf = (unsigned char*)limitMalloc(bufsize);
-	if (buf) {
-		tstrip_t s, ns = TIFFNumberOfStrips(in);
-		uint64_t* bytecounts;
+    tmsize_t bufsize = TIFFStripSize(in);
+    unsigned char *buf = (unsigned char *)limitMalloc(bufsize);
+    if (buf)
+    {
+        tstrip_t s, ns = TIFFNumberOfStrips(in);
+        uint64_t *bytecounts;
 
-		if (!TIFFGetField(in, TIFFTAG_STRIPBYTECOUNTS, &bytecounts)) {
-			fprintf(stderr, "tiffsplit: strip byte counts are missing\n");
-			_TIFFfree(buf);
-			return (0);
-		}
-		for (s = 0; s < ns; s++) {
-			if (bytecounts[s] > (uint64_t)bufsize) {
-				buf = (unsigned char*)limitRealloc(buf, (tmsize_t)bytecounts[s]);
-				if (!buf) {
-					fprintf(stderr, "tiffsplit: Error: Can't re-allocate %"TIFF_SSIZE_FORMAT" bytes for strip-size.\n", (tmsize_t)bytecounts[s]);
-					return (0);
-				}
-				bufsize = (tmsize_t)bytecounts[s];
-			}
-			if (TIFFReadRawStrip(in, s, buf, (tmsize_t)bytecounts[s]) < 0 ||
-				TIFFWriteRawStrip(out, s, buf, (tmsize_t)bytecounts[s]) < 0) {
-				_TIFFfree(buf);
-				return (0);
-			}
-		}
-		_TIFFfree(buf);
-		return (1);
-	} else {
-		fprintf(stderr, "tiffsplit: Error: Can't allocate %"TIFF_SSIZE_FORMAT" bytes for strip-size.\n", bufsize);
-	}
-	return (0);
+        if (!TIFFGetField(in, TIFFTAG_STRIPBYTECOUNTS, &bytecounts))
+        {
+            fprintf(stderr, "tiffsplit: strip byte counts are missing\n");
+            _TIFFfree(buf);
+            return (0);
+        }
+        for (s = 0; s < ns; s++)
+        {
+            if (bytecounts[s] > (uint64_t)bufsize)
+            {
+                buf =
+                    (unsigned char *)limitRealloc(buf, (tmsize_t)bytecounts[s]);
+                if (!buf)
+                {
+                    fprintf(stderr,
+                            "tiffsplit: Error: Can't re-allocate "
+                            "%" TIFF_SSIZE_FORMAT " bytes for strip-size.\n",
+                            (tmsize_t)bytecounts[s]);
+                    return (0);
+                }
+                bufsize = (tmsize_t)bytecounts[s];
+            }
+            if (TIFFReadRawStrip(in, s, buf, (tmsize_t)bytecounts[s]) < 0 ||
+                TIFFWriteRawStrip(out, s, buf, (tmsize_t)bytecounts[s]) < 0)
+            {
+                _TIFFfree(buf);
+                return (0);
+            }
+        }
+        _TIFFfree(buf);
+        return (1);
+    }
+    else
+    {
+        fprintf(stderr,
+                "tiffsplit: Error: Can't allocate %" TIFF_SSIZE_FORMAT
+                " bytes for strip-size.\n",
+                bufsize);
+    }
+    return (0);
 }
 
-static int
-cpTiles(TIFF* in, TIFF* out)
+static int cpTiles(TIFF *in, TIFF *out)
 {
-
     tmsize_t bufsize = TIFFTileSize(in);
 	unsigned char* buf = (unsigned char*)limitMalloc(bufsize);
 
@@ -365,25 +409,15 @@ cpTiles(TIFF* in, TIFF* out)
 
 }
 
-static void
-usage(int code)
+static void usage(int code)
 {
-	FILE* out = (code == EXIT_SUCCESS) ? stdout : stderr;
+    FILE *out = (code == EXIT_SUCCESS) ? stdout : stderr;
 
-
-	fprintf(out, "\n\n%s\n\n", TIFFGetVersion());
-	fprintf(out, "Split a multi-image TIFF into single-image TIFF files\n\n");
-	fprintf(out, "usage: tiffsplit [option] input.tif [prefix]\n");
-	fprintf(out, "where option is:\n");
-	fprintf(out, " -M size       set the memory allocation limit in MiB. 0 to disable limit.\n");
-	exit(code);
+    fprintf(out, "\n\n%s\n\n", TIFFGetVersion());
+    fprintf(out, "Split a multi-image TIFF into single-image TIFF files\n\n");
+    fprintf(out, "usage: tiffsplit [option] input.tif [prefix]\n");
+    fprintf(out, "where option is:\n");
+    fprintf(out, " -M size       set the memory allocation limit in MiB. 0 to "
+                 "disable limit.\n");
+    exit(code);
 }
-
-/* vim: set ts=8 sts=8 sw=8 noet: */
-/*
- * Local Variables:
- * mode: c
- * c-basic-offset: 8
- * fill-column: 78
- * End:
- */
