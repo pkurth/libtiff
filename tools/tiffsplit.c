@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 		strncat(path, TIFF_SUFFIX, path_len - strlen(path) - 1);
 		out = TIFFOpen(path, TIFFIsBigEndian(in) ? "wb" : "wl");
         // Show File name
-        printf("%.10s\n",path);
+        printf("%s.tif\n",fname);
 
 		if (out == NULL) {
 			TIFFClose(in);
@@ -207,10 +207,9 @@ newfilename(void)
         fnum = 0;
     }
 
-    //  Override 3 char naming Scheme and use frame Number
+    //  Override 3 char naming Scheme and use frame Number next to file prefix
     fnum++;
     sprintf(fpnt,"%07ld",fnum);
-    printf(fname);
 }
 
 static int
