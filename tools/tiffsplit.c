@@ -183,7 +183,7 @@ newfilename(void)
     static int first = 1;
     static long fnum;
     static short defname;
-    static char *fpnt;
+    static char *fpnt = 0;
 
     if (first) {
         if (fname[0]) {
@@ -194,7 +194,7 @@ newfilename(void)
             fpnt = fname + 1;
             defname = 1;
         }
-        first = 0;
+        first = 0; //Mark that first call to static function is done
         fnum = 0;
     }
 
@@ -209,8 +209,8 @@ newfilename(void)
 
     //  Override 3 char naming Scheme and use frame Number
     fnum++;
-    sprintf(fname,"%07ld",fnum);
-    printf("%07ld",fnum);
+    sprintf(fpnt,"%07ld",fnum);
+    printf(fname);
 }
 
 static int
