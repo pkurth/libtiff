@@ -234,6 +234,7 @@ struct tiff
     TIFFErrorHandlerExtR tif_warnhandler;
     void *tif_warnhandler_user_data;
     tmsize_t tif_max_single_mem_alloc; /* in bytes. 0 for unlimited */
+    int tif_warn_about_unknown_tags;
 };
 
 struct TIFFOpenOptions
@@ -243,6 +244,7 @@ struct TIFFOpenOptions
     TIFFErrorHandlerExtR warnhandler;  /* may be NULL */
     void *warnhandler_user_data;       /* may be NULL */
     tmsize_t max_single_mem_alloc;     /* in bytes. 0 for unlimited */
+    int warn_about_unknown_tags;
 };
 
 #define isPseudoTag(t) (t > 0xffff) /* is tag value normal or pseudo */

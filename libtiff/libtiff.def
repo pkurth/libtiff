@@ -87,6 +87,7 @@ EXPORTS	TIFFAccessTagMethods
 	TIFFOpenOptionsFree
 	TIFFOpenOptionsSetMaxSingleMemAlloc
 	TIFFOpenOptionsSetErrorHandlerExtR
+	TIFFOpenOptionsSetWarnAboutUnknownTags
 	TIFFOpenOptionsSetWarningHandlerExtR
 	TIFFPrintDirectory
 	TIFFRGBAImageBegin
