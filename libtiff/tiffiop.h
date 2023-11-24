@@ -39,6 +39,7 @@
 #endif
 
 #include <string.h>
+#include <limits.h>
 
 #ifdef HAVE_ASSERT_H
 #include <assert.h>
@@ -243,6 +244,7 @@ struct TIFFOpenOptions
     TIFFErrorHandlerExtR warnhandler;  /* may be NULL */
     void *warnhandler_user_data;       /* may be NULL */
     tmsize_t max_single_mem_alloc;     /* in bytes. 0 for unlimited */
+
 };
 
 #define isPseudoTag(t) (t > 0xffff) /* is tag value normal or pseudo */

@@ -6967,6 +6967,377 @@ static int TIFFFetchNormalTag(TIFF *tif, TIFFDirEntry *dp, int recover)
                     data = (uint8_t *)origdata;
                     count = (uint32_t)(count * 4);
                 }
+	}
+	TIFFSetFieldBit(tif, FIELD_STRIPBYTECOUNTS);
+	if (!TIFFFieldSet(tif, FIELD_ROWSPERSTRIP))
+		td->td_rowsperstrip = td->td_imagelength;
+	return 1;
+}
+
+static void
+MissingRequired(TIFF* tif, const char* tagname)
+{
+	static const char module[] = "MissingRequired";
+
+	TIFFErrorExt(tif->tif_clientdata, module,
+	    "TIFF directory is missing required \"%s\" field",
+	    tagname);
+}
+
+/*
+ * Check the directory offset against the list of already seen directory
+ * offsets. This is a trick to prevent IFD looping. The one can create TIFF
+ * file with looped directory pointers. We will maintain a list of already
+ * seen directories and check every IFD offset against that list.
+ */
+static int
+TIFFCheckDirOffset(TIFF* tif, uint64_t diroff)
+{
+    uint32_t n;
+
+	if (diroff == 0)			/* no more directories */
+		return 0;
+    if (tif->tif_dirnumber == TIFF_DIR_MAX) {
+	    TIFFErrorExt(tif->tif_clientdata, "TIFFCheckDirOffset",
+             "Cannot handle more than TIFF_DIR_MAX TIFF directories");
+        printf("TIFF_DIR_MAX=  %d",TIFF_DIR_MAX);
+	    return 0;
+	}
+
+	for (n = 0; n < tif->tif_dirnumber && tif->tif_dirlist; n++) {
+		if (tif->tif_dirlist[n] == diroff)
+			return 0;
+	}
+
+	tif->tif_dirnumber++;
+
+	if (tif->tif_dirlist == NULL || tif->tif_dirnumber > tif->tif_dirlistsize) {
+		uint64_t* new_dirlist;
+
+		/*
+		 * XXX: Reduce memory allocation granularity of the dirlist
+		 * array.
+		 */
+		new_dirlist = (uint64_t*)_TIFFCheckRealloc(tif, tif->tif_dirlist,
+                                                   tif->tif_dirnumber, 2 * sizeof(uint64_t), "for IFD list");
+		if (!new_dirlist)
+			return 0;
+        if( tif->tif_dirnumber >= TIFF_DIR_MAX/2 )
+            tif->tif_dirlistsize = TIFF_DIR_MAX;
+		else
+		    tif->tif_dirlistsize = 2 * tif->tif_dirnumber;
+		tif->tif_dirlist = new_dirlist;
+	}
+
+	tif->tif_dirlist[tif->tif_dirnumber - 1] = diroff;
+
+	return 1;
+}
+
+/*
+ * Check the count field of a directory entry against a known value.  The
+ * caller is expected to skip/ignore the tag if there is a mismatch.
+ */
+static int
+CheckDirCount(TIFF* tif, TIFFDirEntry* dir, uint32_t count)
+{
+	if ((uint64_t)count > dir->tdir_count) {
+		const TIFFField* fip = TIFFFieldWithTag(tif, dir->tdir_tag);
+		TIFFWarningExt(tif->tif_clientdata, tif->tif_name,
+	"incorrect count for field \"%s\" (%" PRIu64 ", expecting %"PRIu32"); tag ignored",
+		    fip ? fip->field_name : "unknown tagname",
+		    dir->tdir_count, count);
+		return (0);
+	} else if ((uint64_t)count < dir->tdir_count) {
+		const TIFFField* fip = TIFFFieldWithTag(tif, dir->tdir_tag);
+		TIFFWarningExt(tif->tif_clientdata, tif->tif_name,
+	"incorrect count for field \"%s\" (%" PRIu64 ", expecting %"PRIu32"); tag trimmed",
+		    fip ? fip->field_name : "unknown tagname",
+		    dir->tdir_count, count);
+		dir->tdir_count = count;
+		return (1);
+	}
+	return (1);
+}
+
+/*
+ * Read IFD structure from the specified offset. If the pointer to
+ * nextdiroff variable has been specified, read it too. Function returns a
+ * number of fields in the directory or 0 if failed.
+ */
+static uint16_t
+TIFFFetchDirectory(TIFF* tif, uint64_t diroff, TIFFDirEntry** pdir,
+                   uint64_t *nextdiroff)
+{
+	static const char module[] = "TIFFFetchDirectory";
+
+	void* origdir;
+	uint16_t dircount16;
+	uint32_t dirsize;
+	TIFFDirEntry* dir;
+	uint8_t* ma;
+	TIFFDirEntry* mb;
+	uint16_t n;
+
+	assert(pdir);
+
+	tif->tif_diroff = diroff;
+	if (nextdiroff)
+		*nextdiroff = 0;
+	if (!isMapped(tif)) {
+		if (!SeekOK(tif, tif->tif_diroff)) {
+			TIFFErrorExt(tif->tif_clientdata, module,
+				"%s: Seek error accessing TIFF directory",
+				tif->tif_name);
+			return 0;
+		}
+		if (!(tif->tif_flags&TIFF_BIGTIFF))
+		{
+			if (!ReadOK(tif, &dircount16, sizeof (uint16_t))) {
+				TIFFErrorExt(tif->tif_clientdata, module,
+				    "%s: Can not read TIFF directory count",
+				    tif->tif_name);
+				return 0;
+			}
+			if (tif->tif_flags & TIFF_SWAB)
+				TIFFSwabShort(&dircount16);
+			if (dircount16>4096)
+			{
+				TIFFErrorExt(tif->tif_clientdata, module,
+				    "Sanity check on directory count failed, this is probably not a valid IFD offset");
+				return 0;
+			}
+			dirsize = 12;
+		} else {
+			uint64_t dircount64;
+			if (!ReadOK(tif, &dircount64, sizeof (uint64_t))) {
+				TIFFErrorExt(tif->tif_clientdata, module,
+					"%s: Can not read TIFF directory count",
+					tif->tif_name);
+				return 0;
+			}
+			if (tif->tif_flags & TIFF_SWAB)
+				TIFFSwabLong8(&dircount64);
+			if (dircount64>4096)
+			{
+				TIFFErrorExt(tif->tif_clientdata, module,
+				    "Sanity check on directory count failed, this is probably not a valid IFD offset");
+				return 0;
+			}
+			dircount16 = (uint16_t)dircount64;
+			dirsize = 20;
+		}
+		origdir = _TIFFCheckMalloc(tif, dircount16,
+		    dirsize, "to read TIFF directory");
+		if (origdir == NULL)
+			return 0;
+		if (!ReadOK(tif, origdir, (tmsize_t)(dircount16*dirsize))) {
+			TIFFErrorExt(tif->tif_clientdata, module,
+				"%.100s: Can not read TIFF directory",
+				tif->tif_name);
+			_TIFFfree(origdir);
+			return 0;
+		}
+		/*
+		 * Read offset to next directory for sequential scans if
+		 * needed.
+		 */
+		if (nextdiroff)
+		{
+			if (!(tif->tif_flags&TIFF_BIGTIFF))
+			{
+				uint32_t nextdiroff32;
+				if (!ReadOK(tif, &nextdiroff32, sizeof(uint32_t)))
+					nextdiroff32 = 0;
+				if (tif->tif_flags&TIFF_SWAB)
+					TIFFSwabLong(&nextdiroff32);
+				*nextdiroff=nextdiroff32;
+			} else {
+				if (!ReadOK(tif, nextdiroff, sizeof(uint64_t)))
+					*nextdiroff = 0;
+				if (tif->tif_flags&TIFF_SWAB)
+					TIFFSwabLong8(nextdiroff);
+			}
+		}
+	} else {
+		tmsize_t m;
+		tmsize_t off;
+		if (tif->tif_diroff > (uint64_t)INT64_MAX)
+		{
+			TIFFErrorExt(tif->tif_clientdata,module,"Can not read TIFF directory count");
+			return(0);
+		}
+		off = (tmsize_t) tif->tif_diroff;
+
+		/*
+		 * Check for integer overflow when validating the dir_off,
+		 * otherwise a very high offset may cause an OOB read and
+		 * crash the client. Make two comparisons instead of
+		 *
+		 *  off + sizeof(uint16_t) > tif->tif_size
+		 *
+		 * to avoid overflow.
+		 */
+		if (!(tif->tif_flags&TIFF_BIGTIFF))
+		{
+			m=off+sizeof(uint16_t);
+			if ((m<off) || (m<(tmsize_t)sizeof(uint16_t)) || (m > tif->tif_size)) {
+				TIFFErrorExt(tif->tif_clientdata, module,
+					"Can not read TIFF directory count");
+				return 0;
+			} else {
+				_TIFFmemcpy(&dircount16, tif->tif_base + off,
+					    sizeof(uint16_t));
+			}
+			off += sizeof (uint16_t);
+			if (tif->tif_flags & TIFF_SWAB)
+				TIFFSwabShort(&dircount16);
+			if (dircount16>4096)
+			{
+				TIFFErrorExt(tif->tif_clientdata, module,
+				    "Sanity check on directory count failed, this is probably not a valid IFD offset");
+				return 0;
+			}
+			dirsize = 12;
+		}
+		else
+		{
+			uint64_t dircount64;
+			m=off+sizeof(uint64_t);
+			if ((m<off) || (m<(tmsize_t)sizeof(uint64_t)) || (m > tif->tif_size)) {
+				TIFFErrorExt(tif->tif_clientdata, module,
+					"Can not read TIFF directory count");
+				return 0;
+			} else {
+				_TIFFmemcpy(&dircount64, tif->tif_base + off,
+					    sizeof(uint64_t));
+			}
+			off += sizeof (uint64_t);
+			if (tif->tif_flags & TIFF_SWAB)
+				TIFFSwabLong8(&dircount64);
+			if (dircount64>4096)
+			{
+				TIFFErrorExt(tif->tif_clientdata, module,
+				    "Sanity check on directory count failed, this is probably not a valid IFD offset");
+				return 0;
+			}
+			dircount16 = (uint16_t)dircount64;
+			dirsize = 20;
+		}
+		if (dircount16 == 0 )
+		{
+			TIFFErrorExt(tif->tif_clientdata, module,
+			             "Sanity check on directory count failed, zero tag directories not supported");
+			return 0;
+		}
+		origdir = _TIFFCheckMalloc(tif, dircount16,
+						dirsize,
+						"to read TIFF directory");
+		if (origdir == NULL)
+			return 0;
+		m=off+dircount16*dirsize;
+		if ((m<off)||(m<(tmsize_t)(dircount16*dirsize))||(m>tif->tif_size)) {
+			TIFFErrorExt(tif->tif_clientdata, module,
+				     "Can not read TIFF directory");
+			_TIFFfree(origdir);
+			return 0;
+		} else {
+			_TIFFmemcpy(origdir, tif->tif_base + off,
+				    dircount16 * dirsize);
+		}
+		if (nextdiroff) {
+			off += dircount16 * dirsize;
+			if (!(tif->tif_flags&TIFF_BIGTIFF))
+			{
+				uint32_t nextdiroff32;
+				m=off+sizeof(uint32_t);
+				if ((m<off) || (m<(tmsize_t)sizeof(uint32_t)) || (m > tif->tif_size))
+					nextdiroff32 = 0;
+				else
+					_TIFFmemcpy(&nextdiroff32, tif->tif_base + off,
+						    sizeof (uint32_t));
+				if (tif->tif_flags&TIFF_SWAB)
+					TIFFSwabLong(&nextdiroff32);
+				*nextdiroff = nextdiroff32;
+			}
+			else
+			{
+				m=off+sizeof(uint64_t);
+				if ((m<off) || (m<(tmsize_t)sizeof(uint64_t)) || (m > tif->tif_size))
+					*nextdiroff = 0;
+				else
+					_TIFFmemcpy(nextdiroff, tif->tif_base + off,
+						    sizeof (uint64_t));
+				if (tif->tif_flags&TIFF_SWAB)
+					TIFFSwabLong8(nextdiroff);
+			}
+		}
+	}
+	dir = (TIFFDirEntry*)_TIFFCheckMalloc(tif, dircount16,
+						sizeof(TIFFDirEntry),
+						"to read TIFF directory");
+	if (dir==0)
+	{
+		_TIFFfree(origdir);
+		return 0;
+	}
+	ma=(uint8_t*)origdir;
+	mb=dir;
+	for (n=0; n<dircount16; n++)
+	{
+		mb->tdir_ignore = FALSE;
+		if (tif->tif_flags&TIFF_SWAB)
+			TIFFSwabShort((uint16_t*)ma);
+		mb->tdir_tag=*(uint16_t*)ma;
+		ma+=sizeof(uint16_t);
+		if (tif->tif_flags&TIFF_SWAB)
+			TIFFSwabShort((uint16_t*)ma);
+		mb->tdir_type=*(uint16_t*)ma;
+		ma+=sizeof(uint16_t);
+		if (!(tif->tif_flags&TIFF_BIGTIFF))
+		{
+			if (tif->tif_flags&TIFF_SWAB)
+				TIFFSwabLong((uint32_t*)ma);
+			mb->tdir_count=(uint64_t)(*(uint32_t*)ma);
+			ma+=sizeof(uint32_t);
+			mb->tdir_offset.toff_long8=0;
+			*(uint32_t*)(&mb->tdir_offset)=*(uint32_t*)ma;
+			ma+=sizeof(uint32_t);
+		}
+		else
+		{
+			if (tif->tif_flags&TIFF_SWAB)
+				TIFFSwabLong8((uint64_t*)ma);
+                        mb->tdir_count=TIFFReadUInt64(ma);
+			ma+=sizeof(uint64_t);
+			mb->tdir_offset.toff_long8=TIFFReadUInt64(ma);
+			ma+=sizeof(uint64_t);
+		}
+		mb++;
+	}
+	_TIFFfree(origdir);
+	*pdir = dir;
+	return dircount16;
+}
+
+/*
+ * Fetch a tag that is not handled by special case code.
+ */
+static int
+TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp, int recover)
+{
+	static const char module[] = "TIFFFetchNormalTag";
+	enum TIFFReadDirEntryErr err;
+	uint32_t fii;
+	const TIFFField* fip = NULL;
+	TIFFReadDirectoryFindFieldInfo(tif,dp->tdir_tag,&fii);
+        if( fii == FAILED_FII )
+        {
+            TIFFErrorExt(tif->tif_clientdata, "TIFFFetchNormalTag",
+                         "No definition found for tag %"PRIu16,
+                         dp->tdir_tag);
+            return 0;
+=======
             }
             else
             {
@@ -7162,6 +7533,7 @@ static int TIFFFetchNormalTag(TIFF *tif, TIFFDirEntry *dp, int recover)
                 if (!m)
                     return (0);
             }
+>>>>>>> 3f8db71882bfa47336ae6056a1ae1a67d68ff0cd
         }
         break;
         default:

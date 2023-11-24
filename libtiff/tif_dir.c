@@ -2002,6 +2002,7 @@ static int TIFFAdvanceDirectory(TIFF *tif, uint64_t *nextdiroff, uint64_t *off,
 /*
  * Count the number of directories in a file.
  */
+
 tdir_t TIFFNumberOfDirectories(TIFF *tif)
 {
     uint64_t nextdiroff;
@@ -2025,6 +2026,7 @@ tdir_t TIFFNumberOfDirectories(TIFF *tif)
  * Set the n-th directory as the current directory.
  * NB: Directories are numbered starting at 0.
  */
+
 int TIFFSetDirectory(TIFF *tif, tdir_t dirn)
 {
     uint64_t nextdiroff;

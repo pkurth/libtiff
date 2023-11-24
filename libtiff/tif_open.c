@@ -726,6 +726,7 @@ uint32_t TIFFCurrentRow(TIFF *tif) { return (tif->tif_row); }
 /*
  * Return index of the current directory.
  */
+
 tdir_t TIFFCurrentDirectory(TIFF *tif) { return (tif->tif_curdir); }
 
 /*

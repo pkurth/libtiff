@@ -22,8 +22,8 @@
  * OF THIS SOFTWARE.
  */
 
-#include "libport.h"
 #include "tif_config.h"
+#include "../port/libport.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,6 +67,8 @@ static int cpTiles(TIFF *, TIFF *);
 
 static void usage(int);
 
+#define	MAXFILES	9999999
+
 /**
  * This custom malloc function enforce a maximum allocation size
  */
@@ -85,6 +87,7 @@ static void *limitMalloc(tmsize_t s)
     }
     return _TIFFmalloc(s);
 }
+
 
 static void *limitRealloc(void *buf, tmsize_t s)
 {
@@ -109,6 +112,7 @@ int main(int argc, char *argv[])
     extern char *optarg;
     extern int optind;
 #endif
+
     int c;
 
     while ((c = getopt(argc, argv, "M:")) != -1)
@@ -212,69 +216,34 @@ int main(int argc, char *argv[])
 static void newfilename(void)
 {
     static int first = 1;
-    static long lastTurn;
     static long fnum;
     static short defname;
-    static char *fpnt;
+    static char *fpnt = 0;
 
-    if (first)
-    {
-        if (fname[0])
-        {
+    if (first) {
+        if (fname[0]) {
             fpnt = fname + strlen(fname);
             defname = 0;
-        }
-        else
-        {
+        } else {
             fname[0] = 'x';
             fpnt = fname + 1;
             defname = 1;
         }
-        first = 0;
+        first = 0; //Mark that first call to static function is done
+        fnum = 0;
     }
-#define MAXFILES 17576
-    if (fnum == MAXFILES)
-    {
-        if (!defname || fname[0] == 'z')
-        {
+
+    if (fnum == MAXFILES) {
+        if (!defname || fname[0] == 'z') {
             fprintf(stderr, "tiffsplit: too many files.\n");
             exit(EXIT_FAILURE);
         }
         fname[0]++;
         fnum = 0;
     }
-    if (fnum % 676 == 0)
-    {
-        if (fnum != 0)
-        {
-            /*
-             * advance to next letter every 676 pages
-             * condition for 'z'++ will be covered above
-             */
-            fpnt[0]++;
-        }
-        else
-        {
-            /*
-             * set to 'a' if we are on the very first file
-             */
-            fpnt[0] = 'a';
-        }
-        /*
-         * set the value of the last turning point
-         */
-        lastTurn = fnum;
-    }
-    /*
-     * start from 0 every 676 times (provided by lastTurn)
-     * this keeps us within a-z boundaries
-     */
-    fpnt[1] = (char)((fnum - lastTurn) / 26) + 'a';
-    /*
-     * cycle last letter every file, from a-z, then repeat
-     */
-    fpnt[2] = (char)(fnum % 26) + 'a';
+    //  Override 3 char naming Scheme and use frame Number next to file prefix
     fnum++;
+    sprintf(fpnt,"%07ld",fnum);
 }
 
 static int tiffcp(TIFF *in, TIFF *out)
@@ -293,13 +262,10 @@ static int tiffcp(TIFF *in, TIFF *out)
     CopyField(TIFFTAG_BITSPERSAMPLE, bitspersample);
     CopyField(TIFFTAG_SAMPLESPERPIXEL, samplesperpixel);
     CopyField(TIFFTAG_COMPRESSION, compression);
-    if (compression == COMPRESSION_JPEG)
-    {
+    if (compression == COMPRESSION_JPEG) {
         uint32_t count = 0;
         void *table = NULL;
-        if (TIFFGetField(in, TIFFTAG_JPEGTABLES, &count, &table) && count > 0 &&
-            table)
-        {
+        if (TIFFGetField(in, TIFFTAG_JPEGTABLES, &count, &table) && count > 0 && table) {
             TIFFSetField(out, TIFFTAG_JPEGTABLES, count, table);
         }
     }
@@ -351,6 +317,7 @@ static int tiffcp(TIFF *in, TIFF *out)
         return (cpTiles(in, out));
     else
         return (cpStrips(in, out));
+
 }
 
 static int cpStrips(TIFF *in, TIFF *out)
@@ -407,53 +374,39 @@ static int cpStrips(TIFF *in, TIFF *out)
 static int cpTiles(TIFF *in, TIFF *out)
 {
     tmsize_t bufsize = TIFFTileSize(in);
-    unsigned char *buf = (unsigned char *)limitMalloc(bufsize);
+	unsigned char* buf = (unsigned char*)limitMalloc(bufsize);
 
-    if (buf)
-    {
-        ttile_t t, nt = TIFFNumberOfTiles(in);
-        uint64_t *bytecounts;
+	if (buf) {
+		ttile_t t, nt = TIFFNumberOfTiles(in);
+		uint64_t* bytecounts;
 
-        if (!TIFFGetField(in, TIFFTAG_TILEBYTECOUNTS, &bytecounts))
-        {
-            fprintf(stderr, "tiffsplit: tile byte counts are missing\n");
-            _TIFFfree(buf);
-            return (0);
-        }
-        for (t = 0; t < nt; t++)
-        {
-            if (bytecounts[t] > (uint64_t)bufsize)
-            {
-                buf =
-                    (unsigned char *)limitRealloc(buf, (tmsize_t)bytecounts[t]);
-                if (!buf)
-                {
-                    fprintf(stderr,
-                            "tiffsplit: Error: Can't re-allocate "
-                            "%" TIFF_SSIZE_FORMAT " bytes for tile-size.\n",
-                            (tmsize_t)bytecounts[t]);
-                    return (0);
-                }
-                bufsize = (tmsize_t)bytecounts[t];
-            }
-            if (TIFFReadRawTile(in, t, buf, (tmsize_t)bytecounts[t]) < 0 ||
-                TIFFWriteRawTile(out, t, buf, (tmsize_t)bytecounts[t]) < 0)
-            {
-                _TIFFfree(buf);
-                return (0);
-            }
-        }
-        _TIFFfree(buf);
-        return (1);
-    }
-    else
-    {
-        fprintf(stderr,
-                "tiffsplit: Error: Can't allocate %" TIFF_SSIZE_FORMAT
-                " bytes for tile-size.\n",
-                bufsize);
-    }
-    return (0);
+		if (!TIFFGetField(in, TIFFTAG_TILEBYTECOUNTS, &bytecounts)) {
+			fprintf(stderr, "tiffsplit: tile byte counts are missing\n");
+			_TIFFfree(buf);
+			return (0);
+		}
+		for (t = 0; t < nt; t++) {
+			if (bytecounts[t] > (uint64_t) bufsize) {
+				buf = (unsigned char*)limitRealloc(buf, (tmsize_t)bytecounts[t]);
+				if (!buf) {
+					fprintf(stderr, "tiffsplit: Error: Can't re-allocate %"TIFF_SSIZE_FORMAT" bytes for tile-size.\n", (tmsize_t)bytecounts[t]);
+					return (0);
+				}
+				bufsize = (tmsize_t)bytecounts[t];
+			}
+			if (TIFFReadRawTile(in, t, buf, (tmsize_t)bytecounts[t]) < 0 ||
+				TIFFWriteRawTile(out, t, buf, (tmsize_t)bytecounts[t]) < 0) {
+				_TIFFfree(buf);
+				return (0);
+			}
+		}
+		_TIFFfree(buf);
+		return (1);
+	} else {
+		fprintf(stderr, "tiffsplit: Error: Can't allocate %"TIFF_SSIZE_FORMAT" bytes for tile-size.\n", bufsize);
+	}
+	return (0);
+
 }
 
 static void usage(int code)
