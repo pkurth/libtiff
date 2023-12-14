@@ -38,7 +38,10 @@ target_link_libraries(tiff2pdf PRIVATE tiff tiff_port)
 
 add_executable(tiff2ps ../../placeholder.h)
 target_sources(tiff2ps PRIVATE tiff2ps.c ${MSVC_RESSOURCE_FILE})
-target_link_libraries(tiff2ps PRIVATE tiff tiff_port CMath::CMath)
+target_link_libraries(tiff2ps PRIVATE tiff tiff_port)
+if(CMath_LIBRARIES)
+  target_link_libraries(tiff2ps PRIVATE ${CMath_LIBRARIES})
+endif()
 
 # rgb2ycbcr and thumbnail are intended to *NOT* be installed. They are for
 # testing purposes only.
