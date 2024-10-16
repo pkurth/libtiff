@@ -136,7 +136,7 @@ set(tiff_libs_private_list "") # cmake list
 set(tiff_requires_private "") # cmake string
 
 if(ZIP_SUPPORT)
-  target_link_libraries(tiff PRIVATE ZLIB::ZLIB)
+  #target_link_libraries(tiff PRIVATE ZLIB::ZLIB)
   string(APPEND tiff_requires_private " zlib")
 endif()
 if(ZIP_SUPPORT AND LIBDEFLATE_SUPPORT)
